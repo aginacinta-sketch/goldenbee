@@ -52,8 +52,10 @@ Thumbs.db
 # Vercel / vercel
 .vercel
 
-# Platform sandbox (tidak relevan di luar sandbox)
-.zscripts/
+# Platform sandbox — .zscripts SENGAJA DI-TRACK sejak 11 Okt: insiden 9 Okt
+# (workspace dibangun ulang & semua berkas non-git hilang) membuktikan skrip
+# ini dibutuhkan agar situs bisa berjalan lagi setelah pemulihan dari git.
+# Cadangan (GitHub) harus lengkap. Konfigurasi lokal platform tetap diabaikan.
 .claude
 .z-ai-config
 local-*
