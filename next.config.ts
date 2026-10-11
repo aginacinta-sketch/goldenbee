@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
   // ke build standalone (hasil publish) — tanpa ini server produksi bisa
   // gagal memuat engine database.
   serverExternalPackages: ["pdfkit", "pdfkit-table", "exceljs", "@prisma/client", "prisma"],
+  // Sertakan berkas database SQLite dalam bundle serverless/standalone —
+  // tanpa ini, deploy Vercel tidak membawa db/custom.db sehingga katalog
+  // gagal memuat ("SQLite database does not exist").
+  outputFileTracingIncludes: {
+    "/**": ["./db/**"],
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
