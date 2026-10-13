@@ -13,7 +13,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Check, Copy, FileVideo, Loader2, Trash2, Upload } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Check, Copy, Download, FileVideo, Loader2, Maximize2, Trash2, Upload } from "lucide-react";
 import { adminJson, uploadFiles } from "@/lib/client";
 import type { MediaItem } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +33,8 @@ export function AdminMedia() {
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [deleting, setDeleting] = useState<MediaItem | null>(null);
+  const [viewing, setViewing] = useState<MediaItem | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -41,7 +51,7 @@ export function AdminMedia() {
 
   useEffect(() => {
     load();
-     
+
   }, []);
 
   const doUpload = async (files: File[]) => {
@@ -78,6 +88,37 @@ export function AdminMedia() {
       toast({ title: "URL disalin", description: url });
     } catch {
       toast({ title: "Gagal menyalin URL", variant: "destructive" });
+    }
+  };
+
+  // Unduh berkas asli: ambil blob lalu simpan dengan nama aslinya
+  const unduh = async (m: MediaItem) => {
+    setDownloading(m.id);
+    try {
+      const res = await fetch(`/api/media/${m.id}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = m.name || `media-${m.id}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      toast({ title: "Unduhan dimulai", description: m.name });
+    } catch (e) {
+      toast({ title: "Gagal mengunduh", description: e instanceof Error ? e.message : "", variant: "destructive" });
+    } finally {
+      setDownloading(null);
+    }
+  };
+
+  const fmtTanggal = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+    } catch {
+      return iso;
     }
   };
 
@@ -143,19 +184,51 @@ export function AdminMedia() {
             <Card key={m.id} className="group overflow-hidden">
               <div className="relative aspect-square bg-slate-100">
                 {m.type === "image" ? (
-                   
-                  <img src={`/api/media/${m.id}`} alt={m.name} className="h-full w-full object-cover" loading="lazy" />
+                  <button
+                    type="button"
+                    onClick={() => setViewing(m)}
+                    aria-label={`Lihat penuh: ${m.name}`}
+                    className="absolute inset-0 h-full w-full cursor-zoom-in"
+                  >
+                    <img src={`/api/media/${m.id}`} alt={m.name} className="h-full w-full object-cover" loading="lazy" />
+                  </button>
                 ) : (
-                  <div className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-400">
-                    <FileVideo className="h-8 w-8" />
-                    <span className="text-[10px] uppercase">{m.mimeType.split("/")[1]}</span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setViewing(m)}
+                    aria-label={`Putar: ${m.name}`}
+                    className="absolute inset-0 h-full w-full cursor-pointer"
+                  >
+                    <span className="flex h-full w-full flex-col items-center justify-center gap-1 text-slate-400">
+                      <FileVideo className="h-8 w-8" />
+                      <span className="text-[10px] uppercase">{m.mimeType.split("/")[1]}</span>
+                    </span>
+                  </button>
                 )}
-                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition group-hover:opacity-100">
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-1 bg-black/50 opacity-0 transition group-hover:opacity-100">
                   <Button
                     size="icon"
                     variant="secondary"
-                    className="h-9 w-9"
+                    className="pointer-events-auto h-9 w-9"
+                    onClick={() => setViewing(m)}
+                    aria-label="Lihat penuh"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="pointer-events-auto h-9 w-9"
+                    onClick={() => unduh(m)}
+                    aria-label="Unduh berkas"
+                    disabled={downloading === m.id}
+                  >
+                    {downloading === m.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="pointer-events-auto h-9 w-9"
                     onClick={() => copyUrl(m)}
                     aria-label="Salin URL"
                   >
@@ -164,7 +237,7 @@ export function AdminMedia() {
                   <Button
                     size="icon"
                     variant="destructive"
-                    className="h-9 w-9"
+                    className="pointer-events-auto h-9 w-9"
                     onClick={() => setDeleting(m)}
                     aria-label="Hapus media"
                   >
@@ -197,6 +270,49 @@ export function AdminMedia() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Penampil penuh: gambar utuh / pemutar video + info + unduh */}
+      <Dialog open={!!viewing} onOpenChange={(v) => !v && setViewing(null)}>
+        <DialogContent className="max-w-4xl gap-0 overflow-hidden p-0">
+          <div className="flex max-h-[72vh] items-center justify-center overflow-auto bg-slate-950">
+            {viewing?.type === "video" ? (
+              <video key={viewing.id} src={`/api/media/${viewing.id}`} controls className="max-h-[72vh] w-full">
+                <track kind="captions" />
+              </video>
+            ) : (
+              <img
+                key={viewing?.id ?? ""}
+                src={viewing ? `/api/media/${viewing.id}` : ""}
+                alt={viewing?.name ?? ""}
+                className="max-h-[72vh] w-auto max-w-full object-contain"
+              />
+            )}
+          </div>
+          <DialogHeader className="px-4 pb-1 pt-3 text-left">
+            <DialogTitle className="truncate text-sm" title={viewing?.name}>
+              {viewing?.name}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              {viewing ? `${viewing.mimeType} · ${fmtSize(viewing.size)} · ${fmtTanggal(viewing.createdAt)}` : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 border-t px-4 py-3">
+            <Button
+              size="sm"
+              className="bg-[var(--bp-accent)] text-white hover:bg-[var(--bp-accent-dark)]"
+              onClick={() => viewing && unduh(viewing)}
+              disabled={downloading === viewing?.id}
+            >
+              {downloading === viewing?.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              Unduh
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => viewing && copyUrl(viewing)}>
+              {copiedId === viewing?.id ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              Salin URL
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
