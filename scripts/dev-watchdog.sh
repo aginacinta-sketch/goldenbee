@@ -95,5 +95,18 @@ while true; do
     fi
   fi
 
+  # ---------- Sinkron otomatis GitHub ----------
+  # Setelah restart sandbox, proses auto-push mati & berkas pid/log (di luar
+  # git) bisa hilang. Watchdog menyalakannya kembali bila remote sudah
+  # terpasang. Kredensial (.git-kredensial) tidak ikut git — bila hilang,
+  # dorong akan gagal kalem di log sampai kredensial dipasang lagi.
+  if git -C "$PROJEK" remote get-url origin >/dev/null 2>&1; then
+    if ! pgrep -f "auto-push-githu[b].sh" >/dev/null 2>&1; then
+      log "Auto-sync GitHub mati — menyalakan kembali."
+      nohup bash "$PROJEK/scripts/auto-push-github.sh" >> "$PROJEK/auto-push-github.log" 2>&1 &
+      echo $! > /tmp/auto-push-github.pid
+    fi
+  fi
+
   sleep 20
 done
