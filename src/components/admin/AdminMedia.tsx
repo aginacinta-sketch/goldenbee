@@ -34,6 +34,7 @@ export function AdminMedia() {
   const [dragOver, setDragOver] = useState(false);
   const [deleting, setDeleting] = useState<MediaItem | null>(null);
   const [viewing, setViewing] = useState<MediaItem | null>(null);
+  const terakhirDilihatRef = useRef<MediaItem | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -275,18 +276,26 @@ export function AdminMedia() {
       <Dialog open={!!viewing} onOpenChange={(v) => !v && setViewing(null)}>
         <DialogContent className="max-w-4xl gap-0 overflow-hidden p-0">
           <div className="flex max-h-[72vh] items-center justify-center overflow-auto bg-slate-950">
-            {viewing?.type === "video" ? (
-              <video key={viewing.id} src={`/api/media/${viewing.id}`} controls className="max-h-[72vh] w-full">
-                <track kind="captions" />
-              </video>
-            ) : (
-              <img
-                key={viewing?.id ?? ""}
-                src={viewing ? `/api/media/${viewing.id}` : ""}
-                alt={viewing?.name ?? ""}
-                className="max-h-[72vh] w-auto max-w-full object-contain"
-              />
-            )}
+            {(() => {
+              // Selama animasi tutup (viewing = null) tetap tampilkan media
+              // terakhir agar tidak ada kedipan; elemen <img> hanya dirender
+              // bila benar-benar ada media (menghindari warning src="").
+              const tampil = viewing ?? terakhirDilihatRef.current;
+              if (viewing) terakhirDilihatRef.current = viewing;
+              if (!tampil) return null;
+              return tampil.type === "video" ? (
+                <video key={tampil.id} src={`/api/media/${tampil.id}`} controls className="max-h-[72vh] w-full">
+                  <track kind="captions" />
+                </video>
+              ) : (
+                <img
+                  key={tampil.id}
+                  src={`/api/media/${tampil.id}`}
+                  alt={tampil.name}
+                  className="max-h-[72vh] w-auto max-w-full object-contain"
+                />
+              );
+            })()}
           </div>
           <DialogHeader className="px-4 pb-1 pt-3 text-left">
             <DialogTitle className="truncate text-sm" title={viewing?.name}>
