@@ -5,8 +5,9 @@
  * pengunjung + panel balasan realtime. Tersambung ke chat service (socket.io)
  * via gateway: io('/?XTransformPort=3003'), diautentikasi dengan token sesi
  * admin. Dipakai di dua tempat:
- *  - variant="panel"  → tab "Live Chat" di panel admin (tata letak dua kolom
- *    di desktop, lengkap dengan judul halaman & status koneksi).
+ *  - variant="panel"  → tab "Live Chat" di panel admin (daftar percakapan
+ *    SELALU tampak berdampingan dengan utas balasan di semua ukuran layar,
+ *    lengkap dengan judul halaman & status koneksi).
  *  - variant="widget" → widget mengambang live chat di website publik ketika
  *    dibuka oleh admin yang sedang masuk (satu kolom kompak, tinggi mengikuti
  *    induk, judul halaman tidak ikut — sudah disediakan widget).
@@ -434,11 +435,16 @@ export function AdminChatPanel({ variant, onUnreadChange, terlihat }: Props) {
     >
       {/* Daftar percakapan — min-h-0 + flex-1: daftar mengisi sisa tinggi
           panel dan MENGGULIR DI DALAM dirinya; tanpa ini daftar panjang
-          mendorong isi panel keluar batas (terpotong tak bisa dijangkau). */}
+          mendorong isi panel keluar batas (terpotong tak bisa dijangkau).
+          Panel admin: daftar SELALU tampak berdampingan dengan utas —
+          mengklik nama chat TIDAK menutup daftar ini. Widget publik:
+          satu kolom, daftar & utas bergantian seperti semula. */}
       <div
-        className={`chat-scroll w-full min-h-0 flex-1 overflow-y-auto border-neutral-200 ${
-          panel ? "md:w-72 md:flex-none md:border-r" : ""
-        } ${active ? "hidden" : "block"}`}
+        className={`chat-scroll min-h-0 overflow-y-auto border-neutral-200 ${
+          panel
+            ? "w-44 flex-none border-r sm:w-56 md:w-72"
+            : `w-full flex-1 ${active ? "hidden" : "block"}`
+        }`}
       >
         <div className="flex items-center justify-between gap-1.5 border-b border-neutral-100 px-4 py-2.5">
           <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-neutral-400">
@@ -507,8 +513,11 @@ export function AdminChatPanel({ variant, onUnreadChange, terlihat }: Props) {
           mengembang mengikuti isi (bisa > tinggi panel) sehingga kepala
           percakapan & input terdorong keluar area terlihat; kolom pesan
           pun tak pernah menggulir sendiri. Dengan min-h-0 tingginya
-          dipatok sisa panel dan daftar pesan menggulir di dalam. */}
-      <div className={`min-w-0 min-h-0 flex-1 flex-col ${active ? "flex" : panel ? "hidden md:flex" : "hidden"}`}>
+          dipatok sisa panel dan daftar pesan menggulir di dalam.
+          Panel admin: selalu flex (tampil di samping daftar, juga saat
+          belum ada percakapan dipilih → placeholder); widget: hanya
+          saat ada percakapan aktif. */}
+      <div className={`min-w-0 min-h-0 flex-1 flex-col ${panel || active ? "flex" : "hidden"}`}>
         {!active ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center">
             <MessagesSquare className="h-10 w-10 text-neutral-200" />
@@ -523,7 +532,7 @@ export function AdminChatPanel({ variant, onUnreadChange, terlihat }: Props) {
                 size="icon"
                 onClick={() => setActive(null)}
                 aria-label="Kembali ke daftar"
-                className={`h-8 w-8 shrink-0 ${panel ? "md:hidden" : ""}`}
+                className={`h-8 w-8 shrink-0 ${panel ? "hidden" : ""}`}
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
