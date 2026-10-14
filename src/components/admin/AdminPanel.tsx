@@ -43,7 +43,19 @@ export function AdminPanel() {
   const { toast } = useToast();
   // Panel admin hanya dirender di sisi klien, jadi lazy init dari localStorage aman.
   const [authed, setAuthed] = useState<boolean>(() => typeof window !== "undefined" && !!getToken());
-  const [settings, setSettings] = useState<SettingsMap>({});
+  // Setelan diinisialisasi dari cache aksen terakhir (localStorage) agar warna
+  // merek langsung dipakai sejak render pertama — tanpa ini menu aktif dulu
+  // berwarna hijau fallback #84BD00 lalu berubah ke warna merek setelah
+  // /api/settings selesai = kedipan hijau kecil setiap kali masuk panel.
+  const [settings, setSettings] = useState<SettingsMap>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const cache = window.localStorage.getItem("bp-setelan-aksen");
+      return cache ? (JSON.parse(cache) as SettingsMap) : {};
+    } catch {
+      return {};
+    }
+  });
   // Tab aktif dikendalikan agar kartu dashboard dapat berpindah menu (pesan/produk/dsb.).
   const [tab, setTab] = useState("dashboard");
   // Menu navigasi mobile: terbuka/tutup lewat tombol hamburger (lg: selalu tampil sbg sidebar).
@@ -58,7 +70,19 @@ export function AdminPanel() {
   const loadSettings = useCallback(async () => {
     try {
       const res = await adminFetch("/api/settings");
-      if (res.ok) setSettings((await res.json()) as SettingsMap);
+      if (res.ok) {
+        const data = (await res.json()) as SettingsMap;
+        setSettings(data);
+        // Simpan aksen untuk paint instan pada kunjungan berikutnya (anti kedip).
+        try {
+          window.localStorage.setItem(
+            "bp-setelan-aksen",
+            JSON.stringify({ accentColor: data.accentColor, headerColor: data.headerColor }),
+          );
+        } catch {
+          // penyimpanan penuh/ditolak — abaikan, fallback tetap berjalan
+        }
+      }
     } catch {
       // abaikan
     }

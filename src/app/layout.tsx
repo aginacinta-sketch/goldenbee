@@ -34,6 +34,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" suppressHydrationWarning>
+      <head>
+        {/* Anti-kedip hijau saat membuka panel admin: sebelum React hidup,
+            tandai <html> dengan kelas boot-admin bila URL membawa hash #admin
+            (bukan mode publik QR). CSS globals.css memakai kelas ini untuk
+            menyembunyikan render awal katalog (spinner hijau "Memuat katalog…")
+            dan menampilkan layar netral sampai keputusan view selesai — kelas
+            dilepas oleh src/app/page.tsx begitu pemeriksaan sesi berakhir. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var h=location.hash||'';var qr=/[?&]via=qr/i.test(location.search||'');if(!qr&&h.lastIndexOf('#admin',0)===0){document.documentElement.classList.add('boot-admin');}}catch(e){}})();",
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >

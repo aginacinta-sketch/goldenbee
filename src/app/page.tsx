@@ -68,6 +68,10 @@ export default function Home() {
 
     const terapkan = () => {
       void putuskanView().then((hasil) => {
+        // Keputusan selesai — lepas penahan boot admin (kelas boot-admin
+        // menyembunyikan katalog + menampilkan layar netral saat boot
+        // dengan hash #admin; lihat layout.tsx & globals.css).
+        document.documentElement.classList.remove("boot-admin");
         if (hasil) setView(hasil);
       });
     };

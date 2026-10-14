@@ -110,7 +110,10 @@ export function CatalogSite() {
 
   if (!settings) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+      // data-app-root: penanda akar katalog — dipakai CSS boot-admin
+      // (globals.css) untuk menyembunyikan layar ini saat boot panel admin
+      // agar spinner hijau tidak sempat tampak (kedipan hijau).
+      <div data-app-root className="flex min-h-screen items-center justify-center bg-slate-50">
         {gagalMuat ? (
           <div className="flex flex-col items-center gap-4 rounded-xl border bg-white p-8 text-center shadow-sm">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-2xl" aria-hidden="true">
