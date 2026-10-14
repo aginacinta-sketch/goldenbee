@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, LogIn, ShieldCheck, ExternalLink } from "lucide-react";
@@ -42,7 +42,6 @@ export function AdminLogin({ onLogin }: { onLogin: (token: string) => void }) {
             <ShieldCheck className="h-7 w-7" />
           </div>
           <CardTitle className="text-xl">Panel Admin</CardTitle>
-          <CardDescription>Katalog Supplier B2B</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={submit} className="grid gap-4">
