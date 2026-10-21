@@ -1,0 +1,91 @@
+# ============================================================
+# Bangun paket deploy cPanel — Website Katalog Supplier B2B
+# ============================================================
+# Workflow ini membangun aplikasi Next.js (output: standalone)
+# dan mengemasnya menjadi SATU file ZIP yang siap diunggah ke
+# cPanel (menu "Setup Node.js App").
+#
+# Cara pakai (untuk pemilik website):
+#   1. Buka repo GitHub → tab "Actions"
+#   2. Pilih "Bangun paket deploy cPanel" → "Run workflow" (bisa
+#      manual) — atau biarkan berjalan otomatis tiap ada perubahan
+#      KODE (perubahan data/database saja tidak memicu build).
+#   3. Setelah selesai, unduh artifact "goldenbee-cpanel" berisi
+#      goldenbee-cpanel.zip
+#   4. Ikuti CPANEL-DEPLOY.md di root repo untuk pemasangan.
+#
+# Catatan teknis:
+# - Build memakai Bun (konsisten dengan bun.lock) — hasil akhirnya
+#   adalah JavaScript murni yang berjalan di Node.js biasa di cPanel.
+# - db/custom.db ikut dalam paket (salinan data terakhir di repo),
+#   sehingga katalog langsung berisi data saat pertama online.
+# ============================================================
+
+name: Bangun paket deploy cPanel
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "prisma/**"
+      - "next.config.ts"
+      - "package.json"
+      - "bun.lock"
+      - ".github/workflows/cpanel-build.yml"
+
+jobs:
+  build:
+    name: Build & kemas ZIP
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ambil kode
+        uses: actions/checkout@v4
+
+      - name: Pasang Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Pasang dependensi
+        run: bun install --frozen-lockfile
+
+      - name: Generate klien Prisma (dengan engine multi-OpenSSL)
+        run: bunx prisma generate
+
+      - name: Build aplikasi (standalone)
+        run: bun run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Rapikan isi paket
+        run: |
+          set -e
+          # Standalone wajib membawa database + aset statis + public.
+          # (build script sudah menyalin sebagian; langkah ini memastikan)
+          mkdir -p .next/standalone/db
+          cp -r db/. .next/standalone/db/
+          # Buang berkas sampingan WAL/SHM agar paket bersih
+          rm -f .next/standalone/db/custom.db-wal .next/standalone/db/custom.db-shm
+          # .env TIDAK disertakan (rahasia) — db.ts otomatis memakai
+          # db/custom.db, dan cPanel UI menyediakan env DATABASE_URL.
+          echo "--- Isi root paket ---"
+          ls -la .next/standalone | head -20
+
+      - name: Kemas ZIP
+        run: |
+          cd .next/standalone
+          zip -qr ../../goldenbee-cpanel.zip .
+          cd ../..
+          echo "Ukuran paket:"
+          ls -lh goldenbee-cpanel.zip
+
+      - name: Unggah artifact (siap diunduh)
+        uses: actions/upload-artifact@v4
+        with:
+          name: goldenbee-cpanel
+          path: goldenbee-cpanel.zip
+          retention-days: 30
+          compression-level: 0 # ZIP sudah terkompresi; hindari kompresi ganda

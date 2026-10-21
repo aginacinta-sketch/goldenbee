@@ -1,5 +1,12 @@
 generator client {
   provider = "prisma-client-js"
+  // binaryTargets: engine query ikut di-pack untuk berbagai varian Linux
+  // hosting. "native" = engine utk mesin build; "debian-openssl-3.0.x" &
+  // "debian-openssl-1.1.x" = cPanel modern (AlmaLinux 9/CloudLinux 9,
+  // OpenSSL 3) & cPanel lama (AlmaLinux 8/CloudLinux 8, OpenSSL 1.1).
+  // Tanpa ini, deploy cPanel bisa gagal dengan error "Query engine binary
+  // for current platform ... could not be found".
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
 }
 
 datasource db {

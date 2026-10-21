@@ -35,6 +35,10 @@
 > Konfigurasi kini dibaca dari variabel environment (`DATABASE_URL`),
 > sehingga proyek siap di-host di mana pun.
 
+> 🎛️ **Punya hosting cPanel dengan menu "Setup Node.js App"?** Gunakan panduan
+> khusus **[CPANEL-DEPLOY.md](CPANEL-DEPLOY.md)** — paket ZIP siap unggah
+> dibangun otomatis oleh GitHub Actions (workflow "Bangun paket deploy cPanel").
+
 ---
 
 ## 2. Yang perlu Anda tahu dulu (arsitektur singkat)
