@@ -30,6 +30,7 @@ import {
   type ChatMsg,
 } from "@/lib/chatHttp";
 import { getToken } from "@/lib/client";
+import { isPublicQrMode } from "@/lib/shareUrl";
 import { mainkanNadaPesanMasuk } from "@/lib/sound";
 import { TombolNada } from "@/components/chat/TombolNada";
 import { toast } from "@/hooks/use-toast";
@@ -253,7 +254,16 @@ export function ChatWidget({ supplierName }: { supplierName: string }) {
   // Fungsi ini MURNI (tanpa setState); pemanggil yang menerapkan hasilnya.
   // Diperiksa sekali saat dipasang dan disegarkan tiap kali ikon diklik
   // (menangkap admin yang baru login/logout di tab yang sama).
+  //
+  // PENGECUALIAN (Task 90): tautan pengunjung bawaan QR/tautan berbagi
+  // (penanda via=qr) SELALU tampil sebagai pengunjung — form "masukkan
+  // nama" — meski perangkat ini menyimpan sesi admin. Tanpa ini, pemilik
+  // yang login admin lalu membuka link pengunjung (uji coba QR atau
+  // menunjukkan situs ke pelanggan dari perangkatnya) melihat panel balas
+  // admin alih-alih tampilan pengunjung. Mode admin tetap tersedia lewat
+  // alamat biasa (tanpa via=qr) selama sesi admin berlaku.
   const cekModeAdmin = useCallback(async (): Promise<boolean | null> => {
+    if (isPublicQrMode()) return false;
     const token = getToken();
     if (!token) return false;
     try {
