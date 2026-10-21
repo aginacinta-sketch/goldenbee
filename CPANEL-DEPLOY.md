@@ -112,8 +112,11 @@ Masih di halaman aplikasi Node.js yang baru dibuat:
 | `NODE_ENV` | `production` | Mode produksi |
 
 2. Klik **Save**.
-3. Klik tombol **Run NPM Install** — boleh dilewati (paket sudah lengkap),
-   tapi tidak merugikan jika dijalankan.
+3. ❌ **JANGAN klik "Run NPM Install"** — paket ZIP sudah berisi
+   `node_modules` lengkap. Pada shared hosting, npm justru sering gagal
+   (kehabisan memori/registry diblokir) dan bisa mengacak-acak paket yang
+   sudah benar. Error "npm install error" jika tombol itu terlanjur ditekan
+   dapat **diabaikan**; ekstrak ulang ZIP bila ingin memastikan bersih.
 4. Klik **Restart** (tombol di kanan atas halaman aplikasi).
 
 > 💡 Setiap kali menekan **Restart**, cPanel menjalankan `server.js` lewat
@@ -194,6 +197,7 @@ Semua data Anda ada di **satu file**: `/home/USERNAME/goldenbee-app/db/custom.db
 | **Chat lambat / tidak realtime** | Normal di mode polling (bukan gangguan) | Pembaruan tiap ± 2 detik saat chat terbuka — ini perilaku desain di hosting tanpa socket.io. |
 | **Gambar lama hilang setelah deploy ulang** | Ekstrak menimpa database dengan versi repo | Restore backup `custom.db` (bagian 10) → Restart. |
 | **Update tidak berubah** | Cache .next atau Passenger belum restart | Hapus `goldenbee-app/.next/cache` → **Restart** → tunggu ± 30 detik. |
+| **"npm install error" saat Run NPM Install** | Tombol ini memang TIDAK dibutuhkan (paket sudah berisi node_modules); shared hosting biasanya kehabisan memori saat npm berjalan | Abaikan. Ekstrak ulang ZIP (overwrite) untuk memulihkan node_modules bila terlanjur terganggu → langsung **Restart**. |
 | **Port conflict / EADDRINUSE** | Aplikasi lama belum mati | Setup Node.js App → **Stop** → **Restart**. |
 
 ---
