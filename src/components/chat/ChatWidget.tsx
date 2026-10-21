@@ -164,14 +164,18 @@ export function ChatWidget({ supplierName }: { supplierName: string }) {
   // Nama + percakapan pengunjung disimpan di localStorage — dipulihkan saat
   // widget terpasang sehingga percakapan lama tetap tersambung setelah
   // halaman dimuat ulang (pesan ditangguhkan tetap tampil via polling).
+  // PENGECUALIAN (konsistensi Task 90-b): mode publik QR JANGAN memulihkan
+  // sesi lama — setiap buka link QR selalu diawali form nama.
   useEffect(() => {
     let namaTersimpan = "";
     let convTersimpan = "";
-    try {
-      namaTersimpan = window.localStorage.getItem(KUNCI_NAMA) || "";
-      convTersimpan = window.localStorage.getItem(KUNCI_CONV) || "";
-    } catch {
-      // abaikan
+    if (!isPublicQrMode()) {
+      try {
+        namaTersimpan = window.localStorage.getItem(KUNCI_NAMA) || "";
+        convTersimpan = window.localStorage.getItem(KUNCI_CONV) || "";
+      } catch {
+        // abaikan
+      }
     }
     setNama(namaTersimpan);
     setNadaAktifState(apakahNadaAktif("pengunjung"));

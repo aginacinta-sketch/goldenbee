@@ -15,18 +15,49 @@ export const QR_VIA_KEY = "via";
 export const QR_VIA_VALUE = "qr";
 export const PARAM_KUNCI = "k";
 
+/** Penanda sesi tab yang dibuka dari link QR (sessionStorage — hidup selama
+ *  tab terbuka, hilang saat tab ditutup). Menjaga deteksi mode QR tetap
+ *  stabil sepanjang sesi meski query string berubah di tengah jalan
+ *  (Task 90-b). */
+const QR_SESI_KEY = "b2b_qr_sesi";
+
 /** Cek apakah URL saat ini adalah mode publik dari link QR.
  *  Nilai dinormalisasi sehingga varian "?via=qr/" (garis miring sebelum
  *  hash — persis pola "?via=qr/#admin"), spasi, dan huruf kapital tetap
- *  dianggap mode publik. */
+ *  dianggap mode publik.
+ *  Bila query "via" tidak ada, sesi tab ini yang pernah dibuka dari link
+ *  QR (ditandai tandaiSesiQr) tetap dihitung mode QR. */
 export function isPublicQrMode(search?: string): boolean {
   if (typeof window === "undefined") return false;
   try {
     const nilai = new URLSearchParams(search ?? window.location.search).get(QR_VIA_KEY);
-    if (!nilai) return false;
-    return nilai.trim().replace(/\/+$/, "").toLowerCase() === QR_VIA_VALUE;
+    if (nilai) {
+      return nilai.trim().replace(/\/+$/, "").toLowerCase() === QR_VIA_VALUE;
+    }
   } catch {
     return false;
+  }
+  try {
+    return sessionStorage.getItem(QR_SESI_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/** Tandai sesi tab ini sebagai mode publik QR bila URL saat ini membawa
+ *  via=qr. Dipanggil sekali saat halaman dimuat (page.tsx) — setelah itu
+ *  mode QR tetap terdeteksi sepanjang tab hidup, apa pun yang terjadi
+ *  pada query string. */
+export function tandaiSesiQr(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const nilai = new URLSearchParams(window.location.search).get(QR_VIA_KEY);
+    if (!nilai) return;
+    if (nilai.trim().replace(/\/+$/, "").toLowerCase() === QR_VIA_VALUE) {
+      sessionStorage.setItem(QR_SESI_KEY, "1");
+    }
+  } catch {
+    // abaikan — sessionStorage bisa terblokir (mode privasi tertentu)
   }
 }
 

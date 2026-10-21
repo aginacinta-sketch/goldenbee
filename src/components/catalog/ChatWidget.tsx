@@ -4,8 +4,11 @@
  * ChatWidget — live chat mengambang untuk situs katalog.
  * Tersambung ke chat service (socket.io) via gateway: io('/?XTransformPort=3003').
  * Dua mode otomatis:
- *  - PENGUNJUNG (bawaan): form nama sekali, percakapan pribadi via visitorId
- *    di localStorage, riwayat tersambung saat kembali lagi.
+ *  - PENGUNJUNG (bawaan): form nama sekali, percakapan pribadi via visitorId.
+ *    Situs biasa: identitas di localStorage — riwayat tersambung saat kembali.
+ *    Link QR (via=qr): identitas hanya di sessionStorage (Task 90-b) — hilang
+ *    saat tab ditutup, sehingga SETIAP buka link QR selalu diawali form
+ *    "masukkan nama" dan tidak menampilkan chat pengunjung sebelumnya.
  *  - ADMIN: bila yang membuka situs adalah admin yang sedang masuk (token
  *    sesi valid), klik ikon live chat menampilkan panel balasan admin —
  *    daftar percakapan pengunjung + balas realtime, sama seperti tab
@@ -36,14 +39,32 @@ import { TombolNada } from "@/components/chat/TombolNada";
 import { toast } from "@/hooks/use-toast";
 
 const CHAT_IDENTITY_KEY = "b2b_chat_identity";
+/** Identitas MODE QR — disimpan sessionStorage: hidup selama tab terbuka
+ *  (reload tetap tersambung), hilang saat tab ditutup sehingga pemindaian
+ *  QR berikutnya selalu memulai percakapan baru dari form nama. */
+const CHAT_IDENTITY_KEY_SESI = "b2b_chat_identity_sesi";
 /** Batas waktu probe socket — setelah itu beralih permanen ke jalur HTTP. */
 const PROBE_SOCKET_MS = 4500;
 const INTERVAL_POLL_HTTP_MS = 3000;
 
 type Identity = { visitorId: string; name: string };
 
+function muatIdentitasSesi(): Identity | null {
+  try {
+    const raw = sessionStorage.getItem(CHAT_IDENTITY_KEY_SESI);
+    if (!raw) return null;
+    const p = JSON.parse(raw) as Identity;
+    return p.visitorId && p.name ? p : null;
+  } catch {
+    return null;
+  }
+}
+
 function muatIdentitas(): Identity | null {
   if (typeof window === "undefined") return null;
+  // MODE QR (Task 90-b): identitas TIDAK pernah dipulihkan dari localStorage
+  // — chat pengunjung sebelumnya tidak boleh tampil saat membuka link QR.
+  if (isPublicQrMode()) return muatIdentitasSesi();
   try {
     const raw = localStorage.getItem(CHAT_IDENTITY_KEY);
     if (!raw) return null;
@@ -300,7 +321,17 @@ export function ChatWidget({ supplierName }: { supplierName: string }) {
     const nama = namaInput.trim().slice(0, 60);
     if (!nama) return;
     const next: Identity = { visitorId: crypto.randomUUID(), name: nama };
-    localStorage.setItem(CHAT_IDENTITY_KEY, JSON.stringify(next));
+    if (isPublicQrMode()) {
+      // Mode QR: simpan hanya untuk sesi tab ini — tab baru (pemindaian QR
+      // berikutnya) selalu diminta memasukkan nama lagi (Task 90-b).
+      try {
+        sessionStorage.setItem(CHAT_IDENTITY_KEY_SESI, JSON.stringify(next));
+      } catch {
+        // abaikan — tanpa simpanan pun chat tetap jalan sampai tab ditutup
+      }
+    } else {
+      localStorage.setItem(CHAT_IDENTITY_KEY, JSON.stringify(next));
+    }
     setIdentity(next);
     setOpen(true);
   };

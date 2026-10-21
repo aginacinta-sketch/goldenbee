@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CatalogSite } from "@/components/catalog/CatalogSite";
 import { AdminPanel } from "@/components/admin/AdminPanel";
-import { isPublicQrMode, ambilKunciAkses } from "@/lib/shareUrl";
+import { isPublicQrMode, tandaiSesiQr, ambilKunciAkses } from "@/lib/shareUrl";
 import { getToken } from "@/lib/client";
 import { useNotifikasiPesanBaru } from "@/hooks/use-notifikasi-pesan";
 
@@ -77,8 +77,10 @@ export default function Home() {
     };
 
     terapkan();
-    // Mode publik (link QR): tandai <html> agar CSS menyembunyikan
-    // indikator dev tools Next.js (badge "N" di pojok kiri bawah)
+    // Mode publik (link QR): kunci sesi tab ini sebagai mode QR (Task 90-b)
+    // agar tetap terdeteksi sepanjang tab hidup, lalu tandai <html> agar CSS
+    // menyembunyikan indikator dev tools Next.js (badge "N" di pojok kiri bawah)
+    tandaiSesiQr();
     if (isPublicQrMode()) {
       document.documentElement.classList.add("qr-public");
     }
