@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { getPublicSettings } from "@/lib/admin";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,19 +14,35 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "MitraDagang — Katalog Supplier B2B Indonesia",
-  description:
-    "Katalog supplier B2B lengkap: temukan produk supplier terpercaya, cari produk, dan kirim permintaan kontak langsung ke pemasok.",
-  keywords: ["katalog supplier", "B2B", "pemasok", "distributor", "grosir", "ekspor Indonesia"],
-  authors: [{ name: "MitraDagang" }],
-  openGraph: {
-    title: "MitraDagang — Katalog Supplier B2B",
-    description: "Temukan produk supplier terpercaya dan kirim permintaan kontak langsung.",
-    siteName: "MitraDagang",
-    type: "website",
-  },
-};
+// Metadata (judul tab browser, nama situs berbagi tautan) dihitung PER
+// PERMINTAAN — bukan dibekukan saat build — sehingga selalu mengikuti nama
+// brand/pemasok terbaru yang diisikan admin pada panel (Task 91).
+export const dynamic = "force-dynamic";
+
+const JUDUL_BAWAAN = "MitraDagang — Katalog Supplier B2B Indonesia";
+
+export async function generateMetadata(): Promise<Metadata> {
+  let nama = "";
+  try {
+    const s = await getPublicSettings();
+    nama = (s.supplierName || "").trim();
+  } catch {
+    // Basis data belum tersedia (mis. saat build) — pakai judul bawaan.
+  }
+  return {
+    title: nama || JUDUL_BAWAAN,
+    description:
+      "Katalog supplier B2B lengkap: temukan produk supplier terpercaya, cari produk, dan kirim permintaan kontak langsung ke pemasok.",
+    keywords: ["katalog supplier", "B2B", "pemasok", "distributor", "grosir", "ekspor Indonesia"],
+    authors: [{ name: nama || "MitraDagang" }],
+    openGraph: {
+      title: nama || "MitraDagang — Katalog Supplier B2B",
+      description: "Temukan produk supplier terpercaya dan kirim permintaan kontak langsung.",
+      siteName: nama || "MitraDagang",
+      type: "website",
+    },
+  };
+}
 
 export default function RootLayout({
   children,

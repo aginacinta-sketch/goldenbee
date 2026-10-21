@@ -69,6 +69,15 @@ export function CatalogSite() {
     });
   }, [settings]);
 
+  // Judul tab browser mengikuti nama brand/pemasok dari panel admin (Task 91).
+  // Metadata server (layout.tsx) sudah menghitungnya per permintaan; sinkron
+  // klien ini menutup kasus berpindah view katalog↔admin TANPA reload —
+  // setelan terbaru dari /api/settings langsung dipakai.
+  useEffect(() => {
+    const nama = settings?.supplierName?.trim();
+    if (nama) document.title = nama;
+  }, [settings]);
+
   // Alur cetak katalog: render lembar katalog -> beri waktu gambar termuat ->
   // buka dialog cetak browser (pilih "Simpan sebagai PDF" untuk mengunduh).
   useEffect(() => {
