@@ -50,3 +50,22 @@ Work Log:
 Stage Summary:
 - Bug QR→panel admin DIPERBAIKI dan terverifikasi E2E; paket deploy baru tersedia (artifact 12344359300).
 - Catatan penting untuk masa depan: komponen chat yang aktif di situs katalog adalah src/components/catalog/ChatWidget.tsx — bukan src/components/chat/ChatWidget.tsx (dead code).
+
+---
+Task ID: 90-b
+Agent: Z.ai Code (main)
+Task: Perbaiki kelanjutan keluhan pemilik — buka link via QR code masih menampilkan chat pengunjung sebelumnya; harusnya SELALU diawali form "masukkan nama".
+
+Work Log:
+- Akar masalah: identitas chat pengunjung disimpan PERMANEN di localStorage (b2b_chat_identity). Setelah Task 90 memaksa mode pengunjung pada via=qr, widget memulihkan identitas lama dari localStorage → form nama dilewati dan riwayat chat lama langsung dimuat (chat:init / poll menurut visitorId lama).
+- Perbaikan inti (catalog/ChatWidget.tsx — widget aktif): pada mode QR identitas TIDAK dibaca/ditulis ke localStorage; disimpan di sessionStorage (kunci baru b2b_chat_identity_sesi). Efek: tab baru/pemindaian QR berikutnya = sesi segar → form nama selalu tampil; reload di tengah percakapan tetap tersambung (tidak mengganggu); situs biasa (non-QR) tetap pakai localStorage (fitur pengunjung kembali utuh).
+- Hardening (shareUrl.ts): isPublicQrMode() kini ber-fallback ke penanda sesi tab (sessionStorage b2b_qr_sesi) bila query via hilang; tandaiSesiQr() dipanggil page.tsx saat mount → mode QR stabil sepanjang tab hidup (melindungi juga guard anti-admin Task 90).
+- Konsistensi: chat/ChatWidget.tsx (dead code) diberi guard serupa (mode QR tanpa pemulihan sesi).
+- E2E agent-browser: (A) via=qr + identitas lama di localStorage → form "Nama Anda" tampil, chat lama TIDAK dimuat (bukti /tmp/t90b-A-form-nama-qr.png); (B) isi nama "Budi Tester" → panel terbuka, pesan terkirim, DB membuat percakapan BARU (visitorId c11b9e27-…); (C) reload tab sama → chat lanjut tanpa diminta nama; (D) situs biasa + identitas tersimpan → chat langsung dipulihkan (regresi aman). Lint bersih.
+- Side task: .git-kredensial hilang lagi → dipulihkan dari token riwayat chat (valid, HTTP 200) → push 95e6194..427ac85 sukses.
+- Menunggu run Actions 39642422939 (Bangun paket deploy cPanel) selesai → artifact baru untuk re-deploy pemilik.
+
+Stage Summary:
+- Bug "link QR menampilkan chat pengunjung sebelumnya" DIPERBAIKI: setiap buka link QR = percakapan baru yang diawali form nama; reload tetap nyambung; situs biasa tidak berubah.
+- Menunggu artifact Actions baru → instruksi re-deploy ke pemilik (skrip sama, ganti ID artifact).
+- LANJUTAN 90-b: Run 39642422939 SUCCESS → artifact BARU goldenbee-cpanel id=12366295555 (117.7 MB, kedaluwarsa 2026-11-20). Instruksi re-deploy dikirim ke pemilik (skrip Terminal satu-tempel, ID artifact diperbarui; catatan: skrip mem-backup folder lama sehingga db lama bisa dipulihkan bila ingin menyimpan riwayat chat lama).
