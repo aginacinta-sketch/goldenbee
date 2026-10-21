@@ -42,6 +42,7 @@ import {
 } from "@/lib/chatClient";
 import { apakahNadaAktif, mainkanNadaPesanMasuk, setNadaAktif } from "@/lib/sound";
 import { clearToken, getToken } from "@/lib/client";
+import { isPublicQrMode } from "@/lib/shareUrl";
 import { useChatAdmin } from "@/store/chatAdmin";
 import { WidgetAdminChat } from "./WidgetAdminChat";
 
@@ -285,7 +286,16 @@ export function ChatWidget({ supplierName }: { supplierName: string }) {
 
   // Deteksi sesi admin TANPA form sandi di widget: token tersimpan dari
   // panel admin (#admin) divalidasi ke daftar percakapan (same-origin).
+  //
+  // PENGECUALIAN (Task 90): tautan pengunjung bawaan QR/tautan berbagi
+  // (penanda via=qr) SELALU tampil sebagai pengunjung — form "masukkan
+  // nama" — meski perangkat ini menyimpan sesi admin. Tanpa ini, pemilik
+  // yang login admin lalu membuka link pengunjung (uji coba QR atau
+  // menunjukkan situs ke pelanggan dari perangkatnya) melihat "Konsol
+  // Admin" alih-alih tampilan pengunjung. Mode admin tetap tersedia lewat
+  // alamat biasa (tanpa via=qr) selama sesi admin berlaku.
   const cekSesiAdmin = useCallback(async (): Promise<boolean> => {
+    if (isPublicQrMode()) return false;
     const token = getToken();
     if (!token) return false;
     try {
