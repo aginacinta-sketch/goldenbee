@@ -107,3 +107,17 @@ Stage Summary:
 - Fitur galeri foto beranimasi SELESAI & terverifikasi E2E: admin unggah/kelola → website menampilkan marquee foto interaktif.
 - Paket deploy terbaru: artifact 12610508765 (memuat Task 90-b + 91 + 92).
 - Pelajaran teknis: SQLite WAL di db/custom.db — WAJIB wal_checkpoint sebelum commit agar perubahan schema/data masuk git; pastikanTabelGaleri() sebagai pola migrasi runtime untuk tabel baru di masa depan.
+
+---
+Task ID: 93
+Agent: Z.ai Code (main)
+Task: Pindahkan letak section "Galeri Kami" agar berada di ATAS section "Apa Kata Pelanggan Kami" (testimoni).
+
+Work Log:
+- Urutan lama di CatalogSite.tsx: About → Testimoni → Galeri → CTA. Urutan baru: About → GALERI → Testimoni → CTA (hanya menukar posisi JSX, tanpa mengubah komponen).
+- Lint bersih; verifikasi browser: posisi Y heading "Galeri Kami" (y≈2343) kini < "Apa Kata Pelanggan Kami" (y≈2925); 16/16 foto galeri termuat (naturalWidth>0); lightbox/marquee tidak berubah.
+- Commit ee835fc (dibawa auto-sync) ter-push; Run Actions 40227513475 SUCCESS → artifact BARU goldenbee-cpanel id=12612275590 (117.7 MB, kedaluwarsa 2026-11-24).
+
+Stage Summary:
+- Galeri kini tampil sebelum testimoni di halaman katalog.
+- Paket deploy terbaru: artifact 12612275590 (memuat Task 90-b + 91 + 92 + 93).
