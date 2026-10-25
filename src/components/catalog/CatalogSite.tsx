@@ -205,9 +205,9 @@ export function CatalogSite() {
 
         {settings.showTentang === "1" && <AboutSection settings={settings} />}
 
-        {settings.showTestimoni === "1" && <TestimonialsSection testimonials={testimonials} />}
-
         <GallerySection items={gallery} />
+
+        {settings.showTestimoni === "1" && <TestimonialsSection testimonials={testimonials} />}
 
         <CtaStrip onContact={() => openContact()} />
       </main>
