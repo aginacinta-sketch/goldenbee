@@ -189,3 +189,38 @@ html.boot-admin body::after {
 .chat-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.25);
 }
+
+/* ============================================================
+   Galeri foto beranimasi (Task 92) — barisan foto berjalan
+   perlahan tanpa putus (marquee). Lingkaran animasi memakai
+   konten dua kali lipat: track digeser -50% lalu ulang, sehingga
+   loop terasa tak berujung. Hover = jeda; preferensi "kurangi
+   gerak" = animasi mati & galeri bisa digulir manual.
+   ============================================================ */
+@keyframes galeri-lintas {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.galeri-lintasan {
+  animation: galeri-lintas var(--galeri-durasi, 40s) linear infinite;
+  will-change: transform;
+}
+.galeri-lintasan-mundur {
+  animation-direction: reverse;
+}
+/* Jeda halus saat pengunjung mengarahkan kursor ke barisan galeri */
+.galeri-area:hover .galeri-lintasan {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .galeri-lintasan {
+    animation: none;
+  }
+  .galeri-area {
+    overflow-x: auto;
+  }
+}

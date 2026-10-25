@@ -13,10 +13,12 @@ import { CatalogPrintSheet } from "./CatalogPrintSheet";
 import { ChatWidget } from "./ChatWidget";
 import { apiJson } from "@/lib/client";
 import { applyThemeVars } from "@/lib/themeVars";
-import type { MenuItem, Product, SettingsMap, Testimonial } from "@/lib/types";
+import type { GalleryItem, MenuItem, Product, SettingsMap, Testimonial } from "@/lib/types";
+import { GallerySection } from "./GallerySection";
 
 export function CatalogSite() {
   const [settings, setSettings] = useState<SettingsMap | null>(null);
+  const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [menus, setMenus] = useState<MenuItem[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
@@ -48,6 +50,9 @@ export function CatalogSite() {
       setMenus(m);
       setTestimonials(t);
       setGagalMuat(false);
+      // Galeri dimuat terpisah — kegagalannya TIDAK boleh menggagalkan katalog
+      // (cukup section galeri tersembunyi).
+      apiJson<GalleryItem[]>("/api/gallery").then(setGallery).catch(() => setGallery([]));
     } catch {
       // Tandai gagal — layar spinner diganti pesan error + tombol coba lagi
       setGagalMuat(true);
@@ -201,6 +206,8 @@ export function CatalogSite() {
         {settings.showTentang === "1" && <AboutSection settings={settings} />}
 
         {settings.showTestimoni === "1" && <TestimonialsSection testimonials={testimonials} />}
+
+        <GallerySection items={gallery} />
 
         <CtaStrip onContact={() => openContact()} />
       </main>

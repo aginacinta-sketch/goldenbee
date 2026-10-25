@@ -13,6 +13,7 @@ import {
   ListOrdered,
   Star,
   Images,
+  GalleryHorizontal,
   Inbox,
   MessagesSquare,
   KeyRound,
@@ -26,6 +27,7 @@ import { AdminAppearance } from "./AdminAppearance";
 import { AdminProducts } from "./AdminProducts";
 import { AdminMenus } from "./AdminMenus";
 import { AdminTestimonials } from "./AdminTestimonials";
+import { AdminGallery } from "./AdminGallery";
 import { AdminMedia } from "./AdminMedia";
 import { AdminMessages } from "./AdminMessages";
 import { AdminChatPanel } from "@/components/chat/AdminChatPanel";
@@ -228,6 +230,9 @@ export function AdminPanel() {
             <TabsTrigger value="testimoni" className={MENU_TRIGGER}>
               <Star className="h-4 w-4" /> <span className="min-w-0 truncate">Testimoni</span>
             </TabsTrigger>
+            <TabsTrigger value="galeri" className={MENU_TRIGGER}>
+              <GalleryHorizontal className="h-4 w-4" /> <span className="min-w-0 truncate">Galeri</span>
+            </TabsTrigger>
             <TabsTrigger value="media" className={MENU_TRIGGER}>
               <Images className="h-4 w-4" /> <span className="min-w-0 truncate">Media</span>
             </TabsTrigger>
@@ -278,6 +283,9 @@ export function AdminPanel() {
             </TabsContent>
             <TabsContent value="testimoni">
               <AdminTestimonials onChanged={loadSettings} />
+            </TabsContent>
+            <TabsContent value="galeri">
+              <AdminGallery onChanged={loadSettings} />
             </TabsContent>
             <TabsContent value="media">
               <AdminMedia />

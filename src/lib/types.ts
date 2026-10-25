@@ -38,6 +38,16 @@ export interface Testimonial {
   order: number;
 }
 
+export interface GalleryItem {
+  id: string;
+  image: string;
+  caption: string;
+  active: boolean;
+  sortOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface ContactRequest {
   id: string;
   name: string;
