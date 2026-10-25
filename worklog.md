@@ -86,3 +86,24 @@ Work Log:
 Stage Summary:
 - Judul tab browser kini otomatis = nama pemasok dari panel admin (saat ini "GOLDEN BEE INDONESIA"); berubah seketika admin mengganti nama, tanpa build ulang.
 - Paket deploy terbaru: artifact 12389717907 (memuat perbaikan Task 90-b QR nama-wajib + Task 91 judul tab).
+
+---
+Task ID: 92
+Agent: Z.ai Code (main)
+Task: Tambah section GALERI FOTO BERANIMASI di website — foto dikelola dari panel admin.
+
+Work Log:
+- Schema: model GalleryItem (image, caption, active, sortOrder) + db:push. db/custom.db TERNYATA SQLite mode WAL — perubahan tersimpan di -wal (diabaikan git); PRAGMA wal_checkpoint(TRUNCATE) dipakai agar tabel baru masuk file utama sebelum commit.
+- Anti-500 untuk DB lama di cPanel: src/lib/galeri.ts → pastikanTabelGaleri() (CREATE TABLE IF NOT EXISTS, sekali per proses, idempoten) dipanggil semua handler /api/gallery & /api/admin/gallery — DB lama hasil copy pemilik langsung kompatibel tanpa langkah manual.
+- API: GET /api/gallery (publik, active saja), GET+POST /api/admin/gallery, PUT+DELETE /api/admin/gallery/[id] — pola testimoni (isAdminRequest, serializeModel, badRequest).
+- Katalog: GallerySection (src/components/catalog/GallerySection.tsx) — marquee CSS .galeri-lintasan (globals.css): barisan foto berjalan mulus tanpa putus (track digandakan, geser -50%), dua baris arah berlawanan bila ≥4 foto, hover = jeda, prefers-reduced-motion = animasi mati + gulir manual; klik foto → lightbox (Dialog) dengan tombol sebelum/berikutnya + navigasi panah keyboard + keterangan. Tanpa foto aktif → section tidak dirender. Dimuat terpisah di CatalogSite (gagal muat galeri TIDAK menggagalkan katalog).
+- Admin: tab "Galeri" (AdminGallery.tsx) di AdminPanel — unggah banyak foto sekaligus (uploadFiles + POST per berkas) + pratinjau, edit (ganti foto/keterangan), sembunyikan/tampilkan (Eye), urut naik/turun (tukar sortOrder), hapus (AlertDialog).
+- E2E: 5 foto uji di-seed → section tampil (20 tombol = 5×2 baris×2 duplikat), animasi terverifikasi (animationName galeri-lintas 40s, arah normal+reverse), lightbox + next (counter 2/5 + keterangan) OK, admin tab tampil 5 kartu + tombol Tambah; CRUD via API: POST/PUT/DELETE/sembunyikan → publik turun 4 ✓; kosong → section hilang ✓. Data uji dihapus (0 baris) sebelum commit. Lint bersih.
+- Catatan debugging penting: selama verifikasi muncul "misteri" reload halaman tiap 2-3 detik + POST login + DELETE login dari browser — terpecahkan: PEMILIK sedang membuka preview sandbox secara LIVE bersamaan (login admin menimpa token uji saya, model single-token). Bukan bug fitur. PUT 401 saat itu hanya tabrakan token.
+- .git-kredensial hilang lagi (ke-4) → dipulihkan → push 8b8e596..618b149 (membawa commit auto-sync dc9be8d berisi seluruh kode galeri + commit checkpoint DB).
+- Run Actions 40225525425 SUCCESS → artifact BARU goldenbee-cpanel id=12610508765 (117.7 MB, kedaluwarsa 2026-11-24).
+
+Stage Summary:
+- Fitur galeri foto beranimasi SELESAI & terverifikasi E2E: admin unggah/kelola → website menampilkan marquee foto interaktif.
+- Paket deploy terbaru: artifact 12610508765 (memuat Task 90-b + 91 + 92).
+- Pelajaran teknis: SQLite WAL di db/custom.db — WAJIB wal_checkpoint sebelum commit agar perubahan schema/data masuk git; pastikanTabelGaleri() sebagai pola migrasi runtime untuk tabel baru di masa depan.
