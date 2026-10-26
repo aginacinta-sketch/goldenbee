@@ -173,3 +173,19 @@ Work Log:
 Stage Summary:
 - Galeri kini: SLIDE SHOW otomatis di atas + 2 barisan marquee berlawanan arah + ken-burns + reveal + hover kilau + lightbox zoom — 6 lapis animasi total.
 - Paket deploy terbaru: artifact 12623024096 (Task 90-b + 91 + 92 + 93 + 94 + 95).
+
+---
+Task ID: 96
+Agent: Z.ai Code (main)
+Task: Tambah menu "Galeri" pada bar navigasi (Beranda, Produk, Tentang Kami, Testimoni, Kontak) yang mengarahkan ke section "Galeri Kami".
+
+Work Log:
+- Arsitektur nav: Header.tsx merender menus dari DB (MenuItem: label/target/icon/visible/order). Target #galeri sudah valid — GallerySection punya id="galeri" + scroll-mt-36; navigate() pakai querySelector scrollIntoView smooth.
+- KUNCI (self-healing): DB produksi = salinan DB lama pemilik, menu yang hanya diisi di DB sandbox tidak akan sampai produksi. Solusi: src/lib/menus.ts → pastikanMenuGaleri() dipanggil GET /api/menus (publik) & GET /api/admin/menus — bila belum ada menu target "#galeri" DAN ada ≥1 foto galeri aktif, buat baris "Galeri" (ikon images) DISISIPKAN sebelum Testimoni/Kontak (transaksi: order >= acuan digeser +1). Idempoten (findFirst target #galeri, termasuk yang visible=false → keputusan sembunyikan admin dihormati; jika DIHAPUS admin, akan dibuat ulang bila foto masih ada). Tabel GalleryItem dipastikan dulu via pastikanTabelGaleri() agar DB lama pra-Task-92 tidak 500; seluruh bootstrap di try/catch agar tak pernah menggagalkan daftar menu.
+- Pendukung: ikon "images" ditambah ke ICON_MAP (lucide Images) di src/lib/icons.tsx; TARGET_OPTIONS AdminMenus ditambah "Bagian Galeri" (#galeri) agar pemilik bisa kelola/ tambah manual dari panel.
+- Verifikasi: curl /api/menus → 6 menu, Galeri order 4 di antara Tentang Kami & Testimoni, ikon images; GET kedua tidak menduplikasi (6 tetap); baris tersimpan di DB. agent-browser: nav desktop tampil "🖼️ Galeri", klik → scrollY 0→2151, section galeri terlihat tepat di bawah header; menu hamburger mobile tampil Galeri, klik → top galeri = 25px (terlihat). Lint bersih.
+- Commit 8127919; Run Actions 40282250091 SUCCESS → artifact BARU goldenbee-cpanel id=12633130408 (kedaluwarsa 2026-11-25).
+
+Stage Summary:
+- Menu "Galeri" kini ada di navigasi (desktop + mobile), klik menggulir mulus ke section galeri; dibuat otomatis di DB apa pun begitu ada foto galeri aktif.
+- Paket deploy terbaru: artifact 12633130408 (Task 90-b s.d. 96).
