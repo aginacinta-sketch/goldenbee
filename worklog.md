@@ -135,3 +135,24 @@ Work Log:
 
 Stage Summary:
 - Website produksi HIDUP dan berfungsi, tetapi masih versi lama; semua fitur baru ada di artifact 12612275590 menunggu re-deploy oleh pemilik.
+
+---
+Task ID: 94
+Agent: Z.ai Code (main)
+Task: Perkaya animasi tampilan galeri gambar di website (permintaan pemilik).
+
+Work Log:
+- 4 lapis animasi baru di GallerySection + globals.css:
+  (1) REVEAL saat section masuk viewport — IntersectionObserver menambah kelas .galeri-tampak; judul & barisan foto naik-hilang lembut (barisan kedua delay 0.25s), garis aksen emas membentang di bawah judul; dipicu sekali lalu observer dilepas; fallback setTimeout untuk browser tanpa IO (avoid setState sinkron di effect — rule react-hooks/set-state-in-effect).
+  (2) KEN-BURNS: setiap foto "bernapes" (zoom 1→1.1 ease-in-out alternate infinite) dengan durasi 13–20.5s dan animationDelay negatif bervariasi per index agar tidak serempak.
+  (3) HOVER diperkaya: kartu terangkat (-translate-y-1.5 + scale 1.04) + glow bayangan aksen rgba(132,189,0,.5), foto zoom ekstra 1.07 via wrapper span (ken-burns pindah ke img, hover scale ke wrapper — menghindari konflik animasi vs hover transform), kilau putih menyapu (.galeri-kilau, skew -18°, transition 0.8s), keterangan meluncur naik (translate-y-3→0).
+  (4) LIGHTBOX: foto muncul dengan zoom (galeri-zoom 0.35s), key id+idx agar animasi diputar ulang tiap pindah foto.
+- prefers-reduced-motion: semua animasi baru mati, reveal dipaksa tampil.
+- Verifikasi browser: kelas galeri-tampak aktif, judul opacity 1, garis scaleX 1, marquee+kenburns berjalan, 20 foto termuat, lightbox zoom-masuk + navigasi 3/5→4/5 dengan animasi ulang, screenshot visual OK.
+- CATATAN PENTING debugging: efek hover Tailwind (translate/scale/shadow) TIDAK ter-apply di headless agent-browser karena @media (hover: hover) = false di headless (matchMedia terverifikasi) — BUKAN bug; di browser asli desktop hover berjalan normal. Kilau (CSS murni .group:hover) tetap terverifikasi bergerak.
+- Lint bersih; commit dibawa auto-sync; push 80f6d79..f7f3dbf; Run Actions 40256133715 SUCCESS → artifact BARU goldenbee-cpanel id=12622815948 (117.7 MB, kedaluwarsa 2026-11-25).
+
+Stage Summary:
+- Galeri kini 5 lapis animasi: marquee (Task 92) + reveal scroll + ken-burns + hover kilau/angkat + zoom lightbox.
+- Paket deploy terbaru: artifact 12622815948 (memuat Task 90-b + 91 + 92 + 93 + 94).
+- Produksi MASIH build lama (cek 93-b): pemilik perlu re-deploy agar semua fitur terlihat.
