@@ -156,3 +156,20 @@ Stage Summary:
 - Galeri kini 5 lapis animasi: marquee (Task 92) + reveal scroll + ken-burns + hover kilau/angkat + zoom lightbox.
 - Paket deploy terbaru: artifact 12622815948 (memuat Task 90-b + 91 + 92 + 93 + 94).
 - Produksi MASIH build lama (cek 93-b): pemilik perlu re-deploy agar semua fitur terlihat.
+
+---
+Task ID: 95
+Agent: Z.ai Code (main)
+Task: Tambahkan animasi slide show bergerak pada tampilan gambar galeri.
+
+Work Log:
+- Komponen baru SlideshowGaleri di GallerySection.tsx (Task 95): foto BESAR (h-60→sm:h-80→md:h-[26rem], max-w-5xl) tampil bergantian OTOMATIS tiap 4,5 detik dengan animasi GESER halus (track flex translateX(-idx×100%), transition 700ms ease-out).
+- Kontrol lengkap: panah kiri/kanan selalu terlihat (ramah layar sentuh), titik navigasi role=tab (titik aktif memanjang w-6 warna aksen), counter "n / total", keterangan foto pada gradasi gelap.
+- Jeda otomatis saat kursor di atas slide (onMouseEnter/Leave); auto-advance tidak berjalan bila prefers-reduced-motion; < 2 foto → slideshow tidak dirender.
+- Reveal berjenjang: galeri-area kini 3 anak (slideshow, marquee 1, marquee 2) — delay 0s/0.25s/0.4s; CSS .galeri-track transition:none untuk reduced-motion.
+- E2E terverifikasi: slideshow tampil 5 foto; auto-advance 1/5→3/5 dalam ±5s (transform -200%); panah → pindah; klik titik → lompat ke slide 1 (translateX 0%); hover 5.5s → tetap 1/5 (jeda bekerja); klik slide → lightbox terbuka di foto yang sama (1/5); screenshot visual OK (slide besar + panah bulat + titik aksen + counter + marquee di bawah).
+- Lint bersih; auto-sync commit & push; Run Actions 40256714485 SUCCESS → artifact BARU goldenbee-cpanel id=12622687119 (kedaluwarsa 2026-11-25).
+
+Stage Summary:
+- Galeri kini: SLIDE SHOW otomatis di atas + 2 barisan marquee berlawanan arah + ken-burns + reveal + hover kilau + lightbox zoom — 6 lapis animasi total.
+- Paket deploy terbaru: artifact 12623024096 (Task 90-b + 91 + 92 + 93 + 94 + 95).
