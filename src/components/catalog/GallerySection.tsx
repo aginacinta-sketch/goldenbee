@@ -69,10 +69,10 @@ export function GallerySection({ items }: { items: GalleryItem[] }) {
 
   if (items.length === 0) return null;
 
-  const adaBarisKedua = items.length >= 4;
-  // Kecepatan proporsional jumlah foto — makin banyak foto makin panjang durasi
-  // agar laju per foto terasa tetap (dibatasi 24–96 detik per putaran).
-  const durasi = Math.max(24, Math.min(96, items.length * 8));
+  // Kecepatan lembut & elegan (Task 97): SATU barisan berjalan perlahan —
+  // durasi proporsional jumlah foto, dibatasi 40–160 detik per putaran
+  // (makin banyak foto makin lambat, laju per foto terasa tenang).
+  const durasi = Math.max(40, Math.min(160, items.length * 14));
   const gaya = { "--galeri-durasi": `${durasi}s` } as React.CSSProperties;
   const aktif = lightboxIdx !== null ? items[lightboxIdx] : null;
 
@@ -97,20 +97,17 @@ export function GallerySection({ items }: { items: GalleryItem[] }) {
         </div>
       </div>
 
-      <div className="galeri-area mt-8 space-y-3 overflow-hidden" style={gaya}>
+      <div className="galeri-area mt-8 overflow-hidden" style={gaya}>
         {/* Slide show otomatis (Task 95): foto besar bergantian dengan
             animasi geser; panah, titik navigasi, dan jeda saat hover. */}
         <div className="galeri-baris">
           <SlideshowGaleri items={items} onBuka={setLightboxIdx} />
         </div>
-        <div className="galeri-baris">
+        {/* Satu barisan foto berjalan yang lembut (Task 97) — tepi kiri/kanan
+            memudar halus (.galeri-pudar) untuk kesan elegan. */}
+        <div className="galeri-baris galeri-pudar">
           <BarisanGaleri items={items} onBuka={setLightboxIdx} />
         </div>
-        {adaBarisKedua && (
-          <div className="galeri-baris">
-            <BarisanGaleri items={[...items].reverse()} onBuka={setLightboxIdx} mundur />
-          </div>
-        )}
       </div>
 
       {/* Lightbox foto besar + navigasi sebelum/berikutnya */}
