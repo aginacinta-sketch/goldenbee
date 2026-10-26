@@ -98,6 +98,11 @@ export function GallerySection({ items }: { items: GalleryItem[] }) {
       </div>
 
       <div className="galeri-area mt-8 space-y-3 overflow-hidden" style={gaya}>
+        {/* Slide show otomatis (Task 95): foto besar bergantian dengan
+            animasi geser; panah, titik navigasi, dan jeda saat hover. */}
+        <div className="galeri-baris">
+          <SlideshowGaleri items={items} onBuka={setLightboxIdx} />
+        </div>
         <div className="galeri-baris">
           <BarisanGaleri items={items} onBuka={setLightboxIdx} />
         </div>
@@ -159,6 +164,141 @@ export function GallerySection({ items }: { items: GalleryItem[] }) {
         </DialogContent>
       </Dialog>
     </section>
+  );
+}
+
+/**
+ * Slide show galeri (Task 95) — foto besar tampil bergantian otomatis
+ * setiap 4,5 detik dengan animasi geser halus (track translateX).
+ * Pengunjung bisa memaksa pindah lewat panah/titik; kursor di atas
+ * slide menahan putaran. Klik slide membuka lightbox foto tersebut.
+ * Tidak dirender bila foto kurang dari 2.
+ */
+function SlideshowGaleri({
+  items,
+  onBuka,
+}: {
+  items: GalleryItem[];
+  onBuka: (idx: number) => void;
+}) {
+  const total = items.length;
+  const [idx, setIdx] = useState(0);
+  const [jeda, setJeda] = useState(false);
+
+  const lanjut = useCallback(() => setIdx((i) => (i + 1) % total), [total]);
+  const mundur = useCallback(
+    () => setIdx((i) => (i - 1 + total) % total),
+    [total],
+  );
+  const keIdx = useCallback(
+    (i: number) => setIdx(((i % total) + total) % total),
+    [total],
+  );
+
+  // Putaran otomatis; berhenti saat kursor di atas slide, saat foto
+  // kurang dari 2, atau bila pengunjung memilih "kurangi gerak".
+  useEffect(() => {
+    if (jeda || total < 2) return;
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    )
+      return;
+    const t = window.setInterval(lanjut, 4500);
+    return () => window.clearInterval(t);
+  }, [jeda, total, lanjut]);
+
+  if (total < 2) return null;
+
+  return (
+    <div
+      className="galeri-slide relative mx-auto max-w-5xl overflow-hidden rounded-2xl border bg-white shadow-lg"
+      onMouseEnter={() => setJeda(true)}
+      onMouseLeave={() => setJeda(false)}
+      aria-roledescription="karosel"
+      aria-label="Slide show galeri"
+    >
+      {/* Track slide: semua foto berjajar, digeser -idx × 100% dengan
+          transisi CSS — inilah animasi geser antar foto. */}
+      <div
+        className="galeri-track flex transition-transform duration-700 ease-out"
+        style={{ transform: `translateX(-${idx * 100}%)` }}
+      >
+        {items.map((g, i) => (
+          <button
+            key={g.id}
+            type="button"
+            onClick={() => onBuka(i)}
+            aria-hidden={i !== idx || undefined}
+            tabIndex={i === idx ? 0 : -1}
+            aria-label={
+              g.caption
+                ? `Perbesar foto: ${g.caption}`
+                : `Perbesar foto ${i + 1}`
+            }
+            className="relative block w-full shrink-0 focus-visible:outline-none"
+          >
+            <img
+              src={g.image}
+              alt={g.caption || "Foto galeri"}
+              loading={i === 0 ? "eager" : "lazy"}
+              className="h-60 w-full object-cover sm:h-80 md:h-[26rem]"
+            />
+            {/* Keterangan foto di atas gradasi gelap */}
+            {g.caption && (
+              <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/65 via-black/25 to-transparent p-4 pt-10 text-left text-sm font-medium text-white">
+                <span className="line-clamp-1">{g.caption}</span>
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* Panah kiri/kanan — selalu terlihat agar bisa dipakai di layar sentuh */}
+      <button
+        type="button"
+        onClick={mundur}
+        aria-label="Slide sebelumnya"
+        className="absolute left-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-neutral-700 shadow-md backdrop-blur transition-all duration-300 hover:bg-white hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bp-accent)]"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+      <button
+        type="button"
+        onClick={lanjut}
+        aria-label="Slide berikutnya"
+        className="absolute right-3 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/85 text-neutral-700 shadow-md backdrop-blur transition-all duration-300 hover:bg-white hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bp-accent)]"
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
+
+      {/* Batang bawah: keterangan, titik navigasi, dan hitungan slide */}
+      <div className="flex items-center gap-3 px-4 py-2.5">
+        <span className="hidden min-w-0 flex-1 truncate text-xs font-medium text-slate-600 sm:block">
+          {items[idx]?.caption || ""}
+        </span>
+        <div className="flex flex-1 items-center justify-center gap-1.5 sm:flex-none" role="tablist" aria-label="Pilih slide">
+          {items.map((g, i) => (
+            <button
+              key={`titik-${g.id}`}
+              type="button"
+              role="tab"
+              aria-selected={i === idx}
+              aria-label={`Slide ${i + 1}`}
+              onClick={() => keIdx(i)}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                i === idx
+                  ? "w-6 bg-[var(--bp-accent)]"
+                  : "w-2 bg-slate-300 hover:bg-slate-400"
+              }`}
+            />
+          ))}
+        </div>
+        <span className="flex-1 text-right text-xs tabular-nums text-slate-400">
+          {idx + 1} / {total}
+        </span>
+      </div>
+    </div>
   );
 }
 

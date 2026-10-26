@@ -258,9 +258,13 @@ html.boot-admin body::after {
   opacity: 1;
   transform: none;
 }
-/* barisan kedua menyusul sedikit lebih lambat — kesan berjenjang */
+/* barisan kedua & ketiga menyusul lebih lambat — kesan berjenjang.
+   (anak ke-1 = slide show, ke-2 = marquee atas, ke-3 = marquee bawah) */
 .galeri-tampak .galeri-baris:nth-child(2) {
   transition-delay: 0.25s;
+}
+.galeri-tampak .galeri-baris:nth-child(3) {
+  transition-delay: 0.4s;
 }
 .galeri-tampak .galeri-garis {
   transform: scaleX(1);
@@ -315,6 +319,10 @@ html.boot-admin body::after {
   .galeri-kenburns,
   .galeri-zoom {
     animation: none;
+  }
+  /* geser antar slide tanpa animasi (langsung pindah) */
+  .galeri-track {
+    transition: none;
   }
   .galeri-kilau {
     display: none;
