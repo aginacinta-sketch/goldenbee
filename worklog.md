@@ -189,3 +189,20 @@ Work Log:
 Stage Summary:
 - Menu "Galeri" kini ada di navigasi (desktop + mobile), klik menggulir mulus ke section galeri; dibuat otomatis di DB apa pun begitu ada foto galeri aktif.
 - Paket deploy terbaru: artifact 12633130408 (Task 90-b s.d. 96).
+
+---
+Task ID: 97
+Agent: Z.ai Code (main)
+Task: Animasi foto berjalan galeri dibuat SATU barisan saja — lebih lembut dan elegan.
+
+Work Log:
+- GallerySection.tsx: barisan marquee kedua (mundur) DIHAPUS — kini slide show + SATU barisan berjalan. Kecepatan dilambakan signifikan: durasi = items.length × 14 detik (batas 40–160s; sebelumnya ×8, batas 24–96) → ±25px/detik (sebelumnya ±65).
+- Gaya dilembutkan: jarak antar foto mr-3→mr-6, sudut rounded-xl→rounded-2xl, hover kalem (lift -1px, scale 1.02, glow aksen alpha 0.35), transisi 300→500ms (foto 700ms), ken-burns jauh lebih pelan (18–27s, skala maks 1.06), kilau lebih redup (0.35) & lebih lambat (1.2s), gradasi keterangan lebih ringan.
+- ELEGAN (baru): kelas .galeri-pudar — mask-image linear-gradient 90deg (transparan 0% → hitam 7% → hitam 93% → transparan) sehingga tepi kiri/kanan barisan MEMUDAR HALUS, foto "muncul dari kabut" alih-alih terpotong tegas; default --galeri-durasi 60s.
+- Catatan debugging: setelah edit globals.css, dev server (Turbopack) MENYAJIKAN CSS LAMA — rule .galeri-pudar tidak ada di chunk terkompilasi walau source benar; touch tidak memicu kompilasi ulang. SOLUSI: restart dev server (kill proses, nohup bun run dev) → chunk segar memuat semua rule. Penting diingat bila edit CSS sepertinya "tidak berefek".
+- Verifikasi browser: 1 lintasan marquee, arah normal, durasi 56s (4 foto aktif × 14 — pemilik mengganti foto galeri secara LIVE: kini "Dokumen1" dls.), mask aktif, ken-burns 18s, track bergerak -879px→-1027px dalam 6 detik; screenshot: satu barisan dengan tepi memudar, di bawahnya langsung testimoni. Slideshow & lightbox tak berubah.
+- Lint bersih; push bd7dee9..4aa3b3e; Run Actions 40283294737 SUCCESS → artifact BARU goldenbee-cpanel id=12633038016 (kedaluwarsa 2026-11-25).
+
+Stage Summary:
+- Barisan foto berjalan kini SATU baris, jauh lebih lambat, lembut, dan elegan (tepi memudar); slideshow tetap di atasnya.
+- Paket deploy terbaru: artifact 12633038016 (Task 90-b s.d. 97).
