@@ -121,3 +121,17 @@ Work Log:
 Stage Summary:
 - Galeri kini tampil sebelum testimoni di halaman katalog.
 - Paket deploy terbaru: artifact 12612275590 (memuat Task 90-b + 91 + 92 + 93).
+
+---
+Task ID: 93-b
+Agent: Z.ai Code (main)
+Task: Cek website atas permintaan pemilik (produksi goldenbee.web-id.id vs sandbox).
+
+Work Log:
+- Produksi: HTTP 200, /api/settings OK (supplierName benar), TAPI /api/gallery → 404/HTML shell, SSR tanpa <title>, halaman macet di spinner "Memuat katalog…" ±15-20 detik (cPanel cold start + /api/map-embed lambat) sebelum akhirnya render.
+- Urutan section di produksi: Produk → About → Apa Kata Pelanggan → CTA, TANPA Galeri → produksi MASIH build lama (pra-Task 92/93); Task 90-b/91 kemungkinan juga belum aktif penuh (SSR title hilang, judul hanya diisi client JS).
+- Sandbox (kode terbaru): judul "GOLDEN BEE INDONESIA", urutan Produk → About → Galeri Kami → Apa Kata Pelanggan → CTA — semua sesuai.
+- Kesimpulan: tidak ada bug baru; pemilik belum menjalankan skrip re-deploy artifact 12612275590. Instruksi re-deploy dikirim ulang.
+
+Stage Summary:
+- Website produksi HIDUP dan berfungsi, tetapi masih versi lama; semua fitur baru ada di artifact 12612275590 menunggu re-deploy oleh pemilik.
