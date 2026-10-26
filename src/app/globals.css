@@ -224,3 +224,106 @@ html.boot-admin body::after {
     overflow-x: auto;
   }
 }
+
+/* ============================================================
+   Galeri foto beranimasi — lapisan kedua (Task 94):
+   1) Reveal saat section masuk viewport (judul & barisan naik
+      perlahan, garis aksen membentang) — dipicu kelas
+      .galeri-tampak dari IntersectionObserver.
+   2) Ken-burns: foto "bernapes" (zoom lembut bolak-balik)
+      dengan durasi/fase berbeda per foto agar tidak serempak.
+   3) Hover: kartu terangkat + cahaya aksen + kilau menyapu
+      foto + keterangan meluncur naik.
+   4) Lightbox: foto muncul dengan zoom halus.
+   Semua dimatikan bila pengunjung memilih "kurangi gerak".
+   ============================================================ */
+
+/* --- 1) Reveal masuk viewport --- */
+.galeri-judul,
+.galeri-baris {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.galeri-garis {
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.6s ease 0.25s;
+}
+.galeri-tampak .galeri-judul {
+  opacity: 1;
+  transform: none;
+}
+.galeri-tampak .galeri-baris {
+  opacity: 1;
+  transform: none;
+}
+/* barisan kedua menyusul sedikit lebih lambat — kesan berjenjang */
+.galeri-tampak .galeri-baris:nth-child(2) {
+  transition-delay: 0.25s;
+}
+.galeri-tampak .galeri-garis {
+  transform: scaleX(1);
+}
+
+/* --- 2) Ken-burns: foto bernapas --- */
+@keyframes galeri-kenburns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.1);
+  }
+}
+.galeri-kenburns {
+  animation: galeri-kenburns var(--kb-durasi, 14s) ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* --- 3) Kilau menyapu foto saat kursor di atas kartu --- */
+.galeri-kilau {
+  position: absolute;
+  top: -40%;
+  bottom: -40%;
+  left: -60%;
+  width: 45%;
+  transform: translateX(-120%) skewX(-18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transition: transform 0.8s ease;
+  pointer-events: none;
+}
+.group:hover .galeri-kilau {
+  transform: translateX(340%) skewX(-18deg);
+}
+
+/* --- 4) Foto lightbox muncul dengan zoom halus --- */
+@keyframes galeri-zoom-masuk {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.galeri-zoom {
+  animation: galeri-zoom-masuk 0.35s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .galeri-kenburns,
+  .galeri-zoom {
+    animation: none;
+  }
+  .galeri-kilau {
+    display: none;
+  }
+  .galeri-judul,
+  .galeri-baris,
+  .galeri-garis {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none;
+  }
+}

@@ -2,16 +2,18 @@
 
 /**
  * GallerySection — barisan foto galeri beranimasi untuk situs katalog
- * (Task 92). Foto berjalan perlahan tanpa putus (marquee CSS, kelas
- * .galeri-lintasan di globals.css); bila foto cukup banyak tampil dua
- * baris yang bergerak berlawanan arah. Klik foto membuka layar besar
- * (lightbox) dengan tombol sebelum/berikutnya.
+ * (Task 92, diperkaya Task 94). Foto berjalan perlahan tanpa putus
+ * (marquee CSS, kelas .galeri-lintasan di globals.css); bila foto cukup
+ * banyak tampil dua baris yang bergerak berlawanan arah. Lapisan animasi
+ * Task 94: reveal saat masuk viewport, ken-burns (foto "bernapes"),
+ * kilau & angkatan kartu saat hover, serta zoom halus pada lightbox.
+ * Klik foto membuka layar besar (lightbox) dengan tombol sebelum/berikutnya.
  *
  * Sumber foto dikelola dari panel admin (tab Galeri). Tanpa foto aktif,
  * section ini tidak dirender sama sekali.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Images } from "lucide-react";
@@ -19,6 +21,32 @@ import type { GalleryItem } from "@/lib/types";
 
 export function GallerySection({ items }: { items: GalleryItem[] }) {
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+  const [tampak, setTampak] = useState(false);
+  const akarRef = useRef<HTMLElement | null>(null);
+
+  // Reveal saat section masuk viewport (Task 94): kelas .galeri-tampak
+  // memicu transisi judul, garis aksen, dan barisan foto (stagger).
+  // Dipicu sekali saja lalu observer dilepas.
+  useEffect(() => {
+    const el = akarRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      // Browser sangat lama tanpa IntersectionObserver: tampilkan galeri
+      // langsung (asinkron agar tidak memicu render berantai di effect).
+      const t = window.setTimeout(() => setTampak(true), 0);
+      return () => window.clearTimeout(t);
+    }
+    const io = new IntersectionObserver(
+      (ent) => {
+        if (ent.some((e) => e.isIntersecting)) {
+          setTampak(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.12 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const lanjut = useCallback(() => {
     setLightboxIdx((i) => (i === null ? null : (i + 1) % items.length));
@@ -49,10 +77,20 @@ export function GallerySection({ items }: { items: GalleryItem[] }) {
   const aktif = lightboxIdx !== null ? items[lightboxIdx] : null;
 
   return (
-    <section id="galeri" className="scroll-mt-36 bg-slate-50 py-12" aria-label="Galeri foto">
+    <section
+      id="galeri"
+      ref={akarRef}
+      className={`scroll-mt-36 bg-slate-50 py-12 ${tampak ? "galeri-tampak" : ""}`}
+      aria-label="Galeri foto"
+    >
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="text-center">
+        <div className="galeri-judul text-center">
           <h2 className="text-2xl font-bold text-slate-900">Galeri Kami</h2>
+          {/* Garis aksen membentang saat section tampil (animasi reveal) */}
+          <span
+            aria-hidden
+            className="galeri-garis mx-auto mt-3 block h-1 w-16 rounded-full bg-[var(--bp-accent)]"
+          />
           <p className="mt-1.5 text-sm text-slate-500">
             Melihat lebih dekat produk, kegiatan, dan pengiriman kami
           </p>
@@ -60,9 +98,13 @@ export function GallerySection({ items }: { items: GalleryItem[] }) {
       </div>
 
       <div className="galeri-area mt-8 space-y-3 overflow-hidden" style={gaya}>
-        <BarisanGaleri items={items} onBuka={setLightboxIdx} />
+        <div className="galeri-baris">
+          <BarisanGaleri items={items} onBuka={setLightboxIdx} />
+        </div>
         {adaBarisKedua && (
-          <BarisanGaleri items={[...items].reverse()} onBuka={setLightboxIdx} mundur />
+          <div className="galeri-baris">
+            <BarisanGaleri items={[...items].reverse()} onBuka={setLightboxIdx} mundur />
+          </div>
         )}
       </div>
 
@@ -75,9 +117,12 @@ export function GallerySection({ items }: { items: GalleryItem[] }) {
           {aktif && (
             <div className="flex flex-col items-center gap-3">
               <img
+                // key termasuk index agar animasi zoom diputar ulang
+                // setiap pindah foto (Task 94).
+                key={`${aktif.id}-${lightboxIdx}`}
                 src={aktif.image}
                 alt={aktif.caption || "Foto galeri"}
-                className="max-h-[70vh] w-auto max-w-full rounded-xl object-contain shadow-2xl"
+                className="galeri-zoom max-h-[70vh] w-auto max-w-full rounded-xl object-contain shadow-2xl"
               />
               <div className="flex w-full items-center justify-between gap-2 rounded-xl bg-white/95 px-3 py-2 shadow-lg">
                 <Button
@@ -160,18 +205,29 @@ function FotoGaleri({
       aria-hidden={ariaTersembunyi || undefined}
       tabIndex={ariaTersembunyi ? -1 : undefined}
       aria-label={item.caption ? `Lihat foto: ${item.caption}` : "Lihat foto galeri"}
-      className="group relative mr-3 block h-40 w-64 shrink-0 overflow-hidden rounded-xl border bg-white shadow-sm transition-transform duration-300 hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bp-accent)] focus-visible:ring-offset-2 sm:h-48 sm:w-80"
+      className="group relative mr-3 block h-40 w-64 shrink-0 overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.04] hover:shadow-[0_20px_45px_-15px_rgba(132,189,0,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bp-accent)] focus-visible:ring-offset-2 sm:h-48 sm:w-80"
     >
-      { }
-      <img
-        src={item.image}
-        alt={item.caption || "Foto galeri"}
-        loading="lazy"
-        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-      />
-      {/* Selubung keterangan muncul saat kursor di atas foto */}
+      {/* Foto bernapas (ken-burns) + zoom ekstra saat kursor di atas kartu.
+          Durasi & fase ken-burns bervariasi per foto agar tidak gerak serempak. */}
+      <span className="absolute inset-0 block overflow-hidden transition-transform duration-500 group-hover:scale-[1.07]">
+        <img
+          src={item.image}
+          alt={item.caption || "Foto galeri"}
+          loading="lazy"
+          className="galeri-kenburns h-full w-full object-cover"
+          style={
+            {
+              "--kb-durasi": `${13 + (idx % 4) * 2.5}s`,
+              animationDelay: `${-2.5 * (idx % 5)}s`,
+            } as React.CSSProperties
+          }
+        />
+      </span>
+      {/* Kilau menyapu foto saat kursor di atas kartu (Task 94) */}
+      <span aria-hidden className="galeri-kilau" />
+      {/* Keterangan meluncur naik saat kursor di atas foto */}
       {item.caption && (
-        <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-2.5 pt-6 text-left text-xs font-medium text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+        <span className="absolute inset-x-0 bottom-0 translate-y-3 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-2.5 pt-6 text-left text-xs font-medium text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
           <span className="line-clamp-2">{item.caption}</span>
         </span>
       )}
