@@ -206,7 +206,7 @@ html.boot-admin body::after {
   }
 }
 .galeri-lintasan {
-  animation: galeri-lintas var(--galeri-durasi, 40s) linear infinite;
+  animation: galeri-lintas var(--galeri-durasi, 60s) linear infinite;
   will-change: transform;
 }
 .galeri-lintasan-mundur {
@@ -259,32 +259,45 @@ html.boot-admin body::after {
   transform: none;
 }
 /* barisan kedua & ketiga menyusul lebih lambat — kesan berjenjang.
-   (anak ke-1 = slide show, ke-2 = marquee atas, ke-3 = marquee bawah) */
+   (anak ke-1 = slide show, ke-2 = barisan berjalan, ke-3 = cadangan) */
 .galeri-tampak .galeri-baris:nth-child(2) {
   transition-delay: 0.25s;
 }
 .galeri-tampak .galeri-baris:nth-child(3) {
   transition-delay: 0.4s;
 }
+
+/* Tepi kiri/kanan barisan memudar halus (Task 97) — kesan elegan,
+   foto "muncul dari kabut" alih-alih terpotong tegas di tepi layar. */
+.galeri-pudar {
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0,
+    #000 7%,
+    #000 93%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(90deg, transparent 0, #000 7%, #000 93%, transparent 100%);
+}
 .galeri-tampak .galeri-garis {
   transform: scaleX(1);
 }
 
-/* --- 2) Ken-burns: foto bernapas --- */
+/* --- 2) Ken-burns: foto bernapas dengan sangat perlahan --- */
 @keyframes galeri-kenburns {
   from {
     transform: scale(1);
   }
   to {
-    transform: scale(1.1);
+    transform: scale(1.06);
   }
 }
 .galeri-kenburns {
-  animation: galeri-kenburns var(--kb-durasi, 14s) ease-in-out infinite alternate;
+  animation: galeri-kenburns var(--kb-durasi, 20s) ease-in-out infinite alternate;
   will-change: transform;
 }
 
-/* --- 3) Kilau menyapu foto saat kursor di atas kartu --- */
+/* --- 3) Kilau lembut menyapu foto saat kursor di atas kartu --- */
 .galeri-kilau {
   position: absolute;
   top: -40%;
@@ -292,8 +305,8 @@ html.boot-admin body::after {
   left: -60%;
   width: 45%;
   transform: translateX(-120%) skewX(-18deg);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
-  transition: transform 0.8s ease;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transition: transform 1.2s ease;
   pointer-events: none;
 }
 .group:hover .galeri-kilau {

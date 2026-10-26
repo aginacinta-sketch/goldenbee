@@ -342,11 +342,11 @@ function FotoGaleri({
       aria-hidden={ariaTersembunyi || undefined}
       tabIndex={ariaTersembunyi ? -1 : undefined}
       aria-label={item.caption ? `Lihat foto: ${item.caption}` : "Lihat foto galeri"}
-      className="group relative mr-3 block h-40 w-64 shrink-0 overflow-hidden rounded-xl border bg-white shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:scale-[1.04] hover:shadow-[0_20px_45px_-15px_rgba(132,189,0,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bp-accent)] focus-visible:ring-offset-2 sm:h-48 sm:w-80"
+      className="group relative mr-6 block h-40 w-64 shrink-0 overflow-hidden rounded-2xl border bg-white shadow-sm transition-all duration-500 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_18px_40px_-18px_rgba(132,189,0,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--bp-accent)] focus-visible:ring-offset-2 sm:h-48 sm:w-80"
     >
-      {/* Foto bernapas (ken-burns) + zoom ekstra saat kursor di atas kartu.
-          Durasi & fase ken-burns bervariasi per foto agar tidak gerak serempak. */}
-      <span className="absolute inset-0 block overflow-hidden transition-transform duration-500 group-hover:scale-[1.07]">
+      {/* Foto bernapas perlahan (ken-burns) + zoom kalem saat kursor di atas
+          kartu. Durasi & fase bervariasi per foto agar tidak serempak. */}
+      <span className="absolute inset-0 block overflow-hidden transition-transform duration-700 group-hover:scale-[1.04]">
         <img
           src={item.image}
           alt={item.caption || "Foto galeri"}
@@ -354,17 +354,17 @@ function FotoGaleri({
           className="galeri-kenburns h-full w-full object-cover"
           style={
             {
-              "--kb-durasi": `${13 + (idx % 4) * 2.5}s`,
-              animationDelay: `${-2.5 * (idx % 5)}s`,
+              "--kb-durasi": `${18 + (idx % 4) * 3}s`,
+              animationDelay: `${-3 * (idx % 5)}s`,
             } as React.CSSProperties
           }
         />
       </span>
-      {/* Kilau menyapu foto saat kursor di atas kartu (Task 94) */}
+      {/* Kilau lembut menyapu foto saat kursor di atas kartu (Task 94/97) */}
       <span aria-hidden className="galeri-kilau" />
-      {/* Keterangan meluncur naik saat kursor di atas foto */}
+      {/* Keterangan meluncur naik perlahan saat kursor di atas foto */}
       {item.caption && (
-        <span className="absolute inset-x-0 bottom-0 translate-y-3 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-2.5 pt-6 text-left text-xs font-medium text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+        <span className="absolute inset-x-0 bottom-0 translate-y-3 bg-gradient-to-t from-black/60 via-black/25 to-transparent p-2.5 pt-6 text-left text-xs font-medium text-white opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
           <span className="line-clamp-2">{item.caption}</span>
         </span>
       )}
