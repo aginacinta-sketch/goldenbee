@@ -1,11 +1,14 @@
 import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { isAdminRequest, unauthorized, badRequest } from "@/lib/admin";
+import { pastikanMenuGaleri } from "@/lib/menus";
 import { serializeModel } from "@/lib/serialize";
 
 // Daftar semua menu (termasuk tersembunyi) — untuk admin
 export async function GET(req: NextRequest) {
   if (!(await isAdminRequest(req))) return unauthorized();
+  // Task 96: menu "Galeri" otomatis tersedia juga di panel admin
+  await pastikanMenuGaleri();
   const items = await db.menuItem.findMany({ orderBy: [{ order: "asc" }, { createdAt: "asc" }] });
   return Response.json(items.map(serializeModel));
 }

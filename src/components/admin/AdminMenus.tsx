@@ -34,6 +34,7 @@ const TARGET_OPTIONS = [
   { value: "#beranda", label: "Beranda (atas)" },
   { value: "#produk", label: "Bagian Produk" },
   { value: "#tentang", label: "Bagian Tentang" },
+  { value: "#galeri", label: "Bagian Galeri" },
   { value: "#testimoni", label: "Bagian Testimoni" },
   { value: "#kontak", label: "Bagian Kontak (footer)" },
 ];

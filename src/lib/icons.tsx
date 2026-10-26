@@ -16,6 +16,7 @@ import {
   Leaf,
   Boxes,
   ShieldCheck,
+  Images,
   type LucideIcon,
 } from "lucide-react";
 
@@ -35,6 +36,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   leaf: Leaf,
   boxes: Boxes,
   shield: ShieldCheck,
+  images: Images,
 };
 
 export const ICON_OPTIONS = Object.keys(ICON_MAP);
