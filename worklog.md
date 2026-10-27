@@ -242,3 +242,19 @@ Work Log:
 Stage Summary:
 - Alur simpan galeri sehat 100%; tidak ada perubahan kode (tidak perlu build baru).
 - Rekomendasi user: deploy artifact 12708048950 dengan skrip AMAN (cadangkan db produksi → deploy → kembalikan db), lalu unggah foto via admin produksi agar persisten; sarankan ganti sandi admin123 di tab Akun.
+
+---
+Task ID: 100
+Agent: Z.ai Code (sesi utama)
+Task: "simpan database saat ini untuk di unggah ke cpanel" — siapkan database terkini untuk migrasi ke produksi.
+
+Work Log:
+- Kejutan positif: user mengunggah ulang 5 foto galeri pukul 04:18–04:19 ("Dokumen 1"–"Dokumen 5", semua aktif) — galleryItem 5, media 28, menu 6, setting 36.
+- PRAGMA wal_checkpoint(TRUNCATE) + integrity_check → "ok"; ukuran DB 28.610.560 byte.
+- Commit "Cadangan database: 5 foto galeri + seluruh data katalog (siap unggah cPanel)" terdorong (e5a3c59..572fd93) — foto galeri kini AMAN di backup GitHub.
+- Uji unduh DB dari raw.githubusercontent.com dengan token → md5 identik (623977b9584472049a7df1175abafde1) dengan DB lokal → jalur unduh cPanel terbukti valid.
+- Menyusun skrip gabungan cPanel: deploy build artifact 12708048950 (tar --exclude=./db agar DB produksi tidak tertimpa snapshot lama) + unduh DB terkini dari GitHub raw → pasang → hapus wal/shm + perintah Restart aplikasi Node.
+
+Stage Summary:
+- Database kini memuat: 5 foto galeri, 8 produk, 3 testimoni, 6 menu (dgn Galeri), 36 setting, 28 media (base64) — integritas ok dan terbackup GitHub.
+- Cara unggah ke cPanel: satu skrip Terminal (deploy build + tarik DB terkini dari GitHub), tidak perlu unduh-unggah manual lewat File Manager.
