@@ -348,3 +348,20 @@ Work Log:
 
 Stage Summary:
 - Paket perbaikan tersedia publik-untuk-pemilik di https://github.com/aginacinta-sketch/goldenbee/releases/tag/cpanel-paket-20261028 — satu ZIP memuat build terbaru + engine Prisma + DB terkini + launcher. Menunggu pemilik mengekstrak & restart, lalu verifikasi 4 API dari sini.
+
+---
+Task ID: 104
+Agent: Z.ai Code (sesi utama)
+Task: Pemilik laporkan ulang "Gagal memuat katalog" — paket fix belum terpasang. Buat jalur perbaikan yang lebih mudah (unduh langsung di server).
+
+Work Log:
+- Verifikasi produksi: / 200, tapi api/settings, products, menus, gallery = 500 (testimonials timeout) — kondisi identik sebelum fix → paket ZIP belum diekstrak di cPanel.
+- Temuan kunci: repo GitHub PUBLIC (halaman repo/release 200 tanpa auth; aset 206 tanpa token; API 403 hanya rate-limit IP sandbox). Token TIDAK diperlukan untuk unduhan server-side.
+- Unduh ulang aset 682512715 (142.336.524 byte, md5 5ce95639dd6d85a1240f018e34206c52); verifikasi isi: app.js, server.js (standalone, output:standalone baked), db/custom.db 53.174.272 byte, package.json, .next (979 berkas + 30 static), public (17), node_modules next/react/@prisma/client/.prisma + 2 engine libquery_engine (openssl-1.1.x 21.782.408 B, openssl-3.0.x 17.547.808 B). ZIP tanpa .env → skrip wajib menulis .env DATABASE_URL absolut.
+- Uji sandbox end-to-end: unzip 2,5 dtk → jalankan `node app.js` PORT 3999 → SEMUA 5 API HTTP 200 dengan data nyata (settings/products/menus/gallery/testimonials). Paket terbukti fungsional.
+- Buat scripts/perbaiki-server-sekarang.sh (135 baris, bahasa Indonesia): backup DB → unduh ZIP dari release → verifikasi → pkill passenger → unzip -oq → tulis .env (DATABASE_URL=file:$APP/db/custom.db) → cek engine → chmod → tmp/restart.txt → verifikasi 6 endpoint + ringkasan.
+- bash -n OK; commit 7a55fd4 push sukses; raw.githubusercontent.com 200 (4.993 B) + syntax OK.
+
+Stage Summary:
+- Jalur perbaikan baru SATU BARIS di cPanel Terminal: curl -sL -o /tmp/perbaiki.sh https://raw.githubusercontent.com/aginacinta-sketch/goldenbee/main/scripts/perbaiki-server-sekarang.sh && bash /tmp/perbaiki.sh — tanpa token, tanpa upload 136 MB via browser.
+- Paket terbukti jalan (5x HTTP 200 di sandbox). Menunggu pemilik mengeksekusi perintah; verifikasi akhir = 6x HTTP 200 dari skrip + cek silang dari sini.
