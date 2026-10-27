@@ -401,3 +401,22 @@ Work Log:
 Stage Summary:
 - Satu perintah final untuk pemilik: curl -sL -o /tmp/bee.sh https://raw.githubusercontent.com/aginacinta-sketch/goldenbee/main/scripts/perbaiki-lengkap.sh && bash /tmp/bee.sh — diagnosa+perbaikan+restart+verifikasi+error-asli dalam sekali jalan.
 - Skrip terbukti di sandbox memulihkan engine dari nol. Menunggu eksekusi pemilik; jika [5] mencetak ERROR ASLI, screenshot akan membocorkan penyebab tersisa (mis. DATABASE_URL hilang/izin DB).
+
+---
+Task ID: 107
+Agent: Z.ai Code (sesi utama)
+Task: Output skrip pemilik membocorkan AKAR SEBENARNYA — "Prisma Client could not locate the Query Engine for runtime debian-openssl-1.0.x (generated for 3.0.x)".
+
+Work Log:
+- Akar final: OS cPanel = OpenSSL 1.0.x (CentOS/CloudLinux 7). binaryTargets schema hanya [native, 3.0.x, 1.1.x] → engine 1.0.x tidak di-pack. Error tampil berkat bagian [5] skrip (uji query langsung).
+- Edit prisma/schema.prisma: binaryTargets += "debian-openssl-1.0.x" (+ komentar bukti Task 106). prisma generate sukses → libquery_engine-debian-openssl-1.0.x.so.node (21.782.408 B) muncul. Temuan: binary 1.0.x IDENTIK md5 (b1475bbc...) dengan 1.1.x di Prisma 6.11 — yang menentukan hanyalah NAMA FILE (deteksi platform by filename).
+- Uji klien regen lokal: query OK (37 setting).
+- Bangun goldenbee-engine-fix.zip (18.149.060 B): node_modules/.prisma/client regen (3 engine; 1.1.x dibuang dari zip karena server sudah punya & identik) + .env absolut + PERBAIKI.txt. Tanpa DB (data server aman).
+- INSIGHT PENTING: uji sandbox pertama FALSE-POSITIVE (shell sandbox mewarisi DATABASE_URL=/home/z/my-project/db/custom.db → menutupi .env). Uji ulang dgn env -i (bersih): server standalone memuat .env dari cwd → 200 data nyata. Validasi .env-producing path TERVERIFIKASI.
+- Perbarui goldenbee-cpanel-fix.zip in-place: + engine 1.0.x (151.884.397 B). Upload release cpanel-paket-20261028: engine-fix asset id 682747128; full package asset lama (682512715) dihapus → upload ulang id 682747451.
+- perbaiki-lengkap.sh: cek engine spesifik 1.0.x (bukan glob), MINI_URL → engine-fix.zip, pesan "SALAH VERSI" bila engine ada tapi bukan 1.0.x. bash -n OK, push, raw 200.
+- Bersihkan /tmp/beetest3, /tmp/engfix.
+
+Stage Summary:
+- Akar masalah 3 lapis terselesaikan bertahap: (1) node_modules engine hilang → (2) registrasi app dihapus pemilik → (3) engine 1.0.x tidak di-pack. Kini schema + paket + skrip semuanya memuat 1.0.x.
+- Pemilik tinggal MENJALANKAN ULANG perintah yang sama; skrip baru akan mengunduh engine-fix.zip 18 MB, memasang engine 1.0.x, restart, verifikasi. Harapan: [4] semua OK.
