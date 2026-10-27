@@ -384,3 +384,20 @@ Work Log:
 Stage Summary:
 - Dua jalur perbaikan siap: (A) Terminal 1 baris — paket lengkap 136 MB otomatis di server; (B) File Manager — ZIP ringkas 20,4 MB (tanpa DB, tanpa build; hanya Prisma + .env + app.js) lalu Restart.
 - Keduanya terbukti di sandbox. Menunggu pemilik mengeksekusi salah satu; verifikasi akhir = 5-6 API HTTP 200.
+
+---
+Task ID: 106
+Agent: Z.ai Code (sesi utama)
+Task: Pemilik "masih sama" + laporan ".prisma tidak tampil saat diekstrak" — buat skrip gabungan diagnosa+perbaikan final.
+
+Work Log:
+- Deteksi 20:02: / 200, api/gallery 500, api/settings timeout — engine masih belum aktif. Pemilik dilanjutkan panduan Show Hidden Files (dotfiles) + Restart.
+- Analisis kemungkinan akar: registrasi Setup Node.js App dibuat ulang pemilik → env DATABASE_URL lama bisa hilang + engine belum terpasang. Butuh visibilitas satu perintah.
+- Buat scripts/perbaiki-lengkap.sh: [1] diagnosa (folder/.next/engine/.env/db + ukuran) → [2] perbaikan (backup DB, tulis .env absolut, bila engine hilang unduh paket mini 20 MB dari GitHub langsung di server → ekstrak → bila gagal eskalasi paket lengkap 136 MB) → [3] restart (pkill + tmp/restart.txt) → [4] verifikasi 6 endpoint → [5] bila gagal: uji query langsung PrismaClient (node nodevenv) cetak ERROR ASLI.
+- bash -n OK; commit+push; raw URL 200.
+- Uji sandbox end-to-end: state rusak disimulasikan (hapus .prisma+@prisma+traced) → jalankan skrip → engine terpasang 2 (unduh mini sukses) → uji DB langsung ">>> DB TERBACA. jumlah setting: 37n" (BigInt suffix). Bagian verifikasi memang menunjuk produksi (masih rusak) — perilaku sesuai desain.
+- Bersihkan /home/z/goldenbee-app.
+
+Stage Summary:
+- Satu perintah final untuk pemilik: curl -sL -o /tmp/bee.sh https://raw.githubusercontent.com/aginacinta-sketch/goldenbee/main/scripts/perbaiki-lengkap.sh && bash /tmp/bee.sh — diagnosa+perbaikan+restart+verifikasi+error-asli dalam sekali jalan.
+- Skrip terbukti di sandbox memulihkan engine dari nol. Menunggu eksekusi pemilik; jika [5] mencetak ERROR ASLI, screenshot akan membocorkan penyebab tersisa (mis. DATABASE_URL hilang/izin DB).
