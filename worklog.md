@@ -420,3 +420,16 @@ Work Log:
 Stage Summary:
 - Akar masalah 3 lapis terselesaikan bertahap: (1) node_modules engine hilang → (2) registrasi app dihapus pemilik → (3) engine 1.0.x tidak di-pack. Kini schema + paket + skrip semuanya memuat 1.0.x.
 - Pemilik tinggal MENJALANKAN ULANG perintah yang sama; skrip baru akan mengunduh engine-fix.zip 18 MB, memasang engine 1.0.x, restart, verifikasi. Harapan: [4] semua OK.
+
+---
+Task ID: 108
+Agent: Z.ai Code (sesi utama)
+Task: Verifikasi pemulihan penuh setelah engine 1.0.x dipasang pemilik.
+
+Work Log:
+- 20:26 verifikasi penuh dari sandbox: / 200; api/settings, products, menus, gallery, testimonials SEMUA HTTP 200 dgn DATA NYATA (produk madu, menu, galeri, testimoni, pengaturan brand).
+- Backup cron 04:26: tidak ada perubahan, push sukses (schema+skrip Task 107 sudah ter-commit sebelumnya).
+
+Stage Summary:
+- INCIDENT DITUTUP: "Gagal memuat katalog" pulih total. Akar: 3 lapis — (1) engine node_modules hilang, (2) registrasi Setup Node.js App terhapus pemilik, (3) server butuh engine debian-openssl-1.0.x yang tidak di-pack. Fix permanen: binaryTargets schema kini memuat 1.0.x (commit repo), release GitHub memuat engine-fix.zip + full package terbaru, skrip perbaiki-lengkap.sh cek engine spesifik.
+- Sisa housekeeping opsional: hapus db/custom.db.bak-* di server bila disk mepet; ZIP perbaikan boleh dihapus dari server.
