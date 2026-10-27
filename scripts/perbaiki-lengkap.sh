@@ -8,7 +8,8 @@
 set -u
 APP="$HOME/goldenbee-app"
 SITE="https://goldenbee.web-id.id"
-MINI_URL="https://github.com/aginacinta-sketch/goldenbee/releases/download/cpanel-paket-20261028/goldenbee-minimal-fix.zip"
+MINI_URL="https://github.com/aginacinta-sketch/goldenbee/releases/download/cpanel-paket-20261028/goldenbee-engine-fix.zip"
+ENGINE_WAJIB="libquery_engine-debian-openssl-1.0.x.so.node"
 FULL_URL="https://github.com/aginacinta-sketch/goldenbee/releases/download/cpanel-paket-20261028/goldenbee-cpanel-fix.zip"
 
 echo "############################################################"
@@ -21,11 +22,15 @@ echo "========== [1] KONDISI SAAT INI =========="
 ls -ld "$APP" >/dev/null 2>&1 || { echo "!! Folder $APP TIDAK ADA — hentikan, laporkan ke asisten."; exit 1; }
 echo "  Folder app   : ADA ($APP)"
 [ -d "$APP/.next" ] && echo "  Build .next  : ADA" || echo "  Build .next  : TIDAK ADA"
-if ls "$APP"/node_modules/.prisma/client/libquery_engine-*.so.node >/dev/null 2>&1; then
-  echo "  Engine Prisma: ADA -> $(ls "$APP"/node_modules/.prisma/client/libquery_engine-*.so.node | xargs -n1 basename | tr '\n' ' ')"
+if [ -s "$APP/node_modules/.prisma/client/$ENGINE_WAJIB" ]; then
+  echo "  Engine Prisma: ADA ($ENGINE_WAJIB)"
   ENGINE_ADA=1
+elif ls "$APP"/node_modules/.prisma/client/libquery_engine-*.so.node >/dev/null 2>&1; then
+  echo "  Engine Prisma: ADA TAPI SALAH VERSI — server butuh $ENGINE_WAJIB (OpenSSL 1.0)"
+  echo "    yang ada: $(ls "$APP"/node_modules/.prisma/client/libquery_engine-*.so.node | xargs -n1 basename | tr '\n' ' ')"
+  ENGINE_ADA=0
 else
-  echo "  Engine Prisma: !! TIDAK ADA (ini penyebab katalog gagal)"
+  echo "  Engine Prisma: !! TIDAK ADA sama sekali (penyebab katalog gagal)"
   ENGINE_ADA=0
 fi
 [ -f "$APP/.env" ] && echo "  File .env    : $(cat "$APP/.env" | head -1)" || echo "  File .env    : TIDAK ADA"
@@ -44,17 +49,17 @@ printf 'DATABASE_URL=file:%s/db/custom.db\n' "$APP" > "$APP/.env"
 echo "  .env ditulis : DATABASE_URL=file:$APP/db/custom.db"
 
 if [ "$ENGINE_ADA" != "1" ]; then
-  echo "  Engine hilang -> unduh paket mini (20 MB) langsung di server..."
+  echo "  Engine belum lengkap -> unduh paket engine (18 MB) langsung di server..."
   if curl -L --retry 3 --retry-delay 2 -sS -o /tmp/bee-mini.zip "$MINI_URL"; then
     SZ=$(stat -c%s /tmp/bee-mini.zip 2>/dev/null || echo 0)
     if [ "$SZ" -gt 15000000 ] && unzip -tq /tmp/bee-mini.zip >/dev/null 2>&1; then
       unzip -oq /tmp/bee-mini.zip -d "$APP" && rm -f /tmp/bee-mini.zip
-      if ls "$APP"/node_modules/.prisma/client/libquery_engine-*.so.node >/dev/null 2>&1; then
-        echo "  -> Engine berhasil dipasang: $(ls "$APP"/node_modules/.prisma/client/ | grep -c libquery) engine"
+      if [ -s "$APP/node_modules/.prisma/client/$ENGINE_WAJIB" ]; then
+        echo "  -> Engine $ENGINE_WAJIB berhasil dipasang"
       else
         echo "  !! Engine masih belum ada setelah ekstrak — akan dicoba paket LENGKAP..."
         curl -L --retry 2 -sS -o /tmp/bee-full.zip "$FULL_URL" && unzip -oq /tmp/bee-full.zip -d "$APP" && rm -f /tmp/bee-full.zip
-        ls "$APP"/node_modules/.prisma/client/libquery_engine-*.so.node >/dev/null 2>&1 && echo "  -> Engine terpasang (paket lengkap)" || echo "  !! GAGAL pasang engine — screenshot hasil ini."
+        [ -s "$APP/node_modules/.prisma/client/$ENGINE_WAJIB" ] && echo "  -> Engine terpasang (paket lengkap)" || echo "  !! GAGAL pasang engine — screenshot hasil ini."
       fi
     else
       echo "  !! Unduhan rusak ($SZ byte) — jalankan ulang perintah ini."
@@ -63,7 +68,7 @@ if [ "$ENGINE_ADA" != "1" ]; then
     echo "  !! Unduhan gagal (server tidak bisa akses GitHub?) — screenshot hasil ini."
   fi
 else
-  echo "  Engine sudah ada — tidak perlu unduh."
+  echo "  Engine $ENGINE_WAJIB sudah ada — tidak perlu unduh."
 fi
 
 chmod -R u+rwX "$APP" 2>/dev/null
