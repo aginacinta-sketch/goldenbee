@@ -272,3 +272,20 @@ Work Log:
 
 Stage Summary:
 - Paket deploy terbaru: ART=12710232626 — satu paket membawa fitur galeri lengkap + 5 foto. Deploy cPanel cukup ekstrak penuh (db ikut) dengan cadangan DB lama dulu.
+
+---
+Task ID: 102
+Agent: Z.ai Code (sesi utama)
+Task: "pada cpanel: Gagal memuat katalog — Server sedang tidak merespons dengan benar" — diagnosa produksi cPanel & siapkan perbaikan.
+
+Work Log:
+- Uji produksi https://goldenbee.web-id.id: homepage 200 (aplikasi hidup); /api/chat/conversations 401 (auth OK, tanpa DB); /api/gallery 404 HTML → build produksi MASIH build lama (pra-galeri); /api/settings|products|menus|testimonials semuanya 500 {"error":"Gagal memuat ..."} → akses database di produksi RUSAK.
+- Verifikasi sumber DB GitHub raw (token): md5 d2558be32c8d1673dda77a8ce77f69c9 = identik DB sandbox, integrity_check "ok", produk 5, galeri 5, setting 37 → sumber sehat 100%; masalah murni berkas DB di server (dugaan: rusak/0-byte saat deploy terakhir atau kuota disk penuh; SQLite read pun butuh menulis -shm/-wal).
+- Baca src/lib/db.ts (fallback DATABASE_URL → db/custom.db; salin ke /tmp bila folder tak writable) & cpanel-build.yml (paket = standalone + db dari repo).
+- Membuat scripts/perbaiki-katalog-cpanel.sh (Task 102): satu-tempel cPanel Terminal — (1) diagnosa df/quota/du + header&ukuran DB; (2) uji baca via nodevemv node ≥18 + @prisma/client aplikasi; (3) backup DB rusak → custom.db.rusak-<ts>; (4) unduh DB GitHub raw + verifikasi md5 & ukuran → pasang + chmod 664; (5) rm wal/shm; (6) touch tmp/restart.txt (Passenger); (7) uji ulang 4 API + tampilkan log terakhir bila gagal.
+- Validasi: bash -n OK; uji unduh dengan header Accept: application/vnd.github.raw → md5 cocok, 53.174.272 byte.
+
+Stage Summary:
+- Diagnosis: server cPanel hidup, router/auth OK, build lama; DB produksi tidak terbaca oleh Prisma (semua API data 500). Sumber DB di GitHub sehat.
+- Solusi diserahkan ke pemilik: jalankan scripts/perbaiki-katalog-cpanel.sh (di-push ke GitHub) via cPanel Terminal; bila output masih gagal, kirim output layar untuk analisis lanjut.
+- Setelah pulih: build produksi masih lama (gallery 404) — sarankan deploy artifact 12710232626 agar fitur galeri aktif.
