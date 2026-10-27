@@ -206,3 +206,23 @@ Work Log:
 Stage Summary:
 - Barisan foto berjalan kini SATU baris, jauh lebih lambat, lembut, dan elegan (tepi memudar); slideshow tetap di atasnya.
 - Paket deploy terbaru: artifact 12633038016 (Task 90-b s.d. 97).
+
+---
+Task ID: 98
+Agent: Z.ai Code (sesi utama)
+Task: "foto galeri hilang, padahal kemarin sudah di masukkan, coba priksa" — diagnosa kehilangan data galeri + penguatan sistem backup agar tak terulang.
+
+Work Log:
+- Diagnosa DB: galleryItem = 0 (kosong total); produk 8, testimoni 3, menu 5, setting 35, media 23 (terbaru 30 Sep) — HANYA data galeri 26 Okt yang hilang.
+- Telusuri semua salinan: backup git 3 commit (bd7dee9 06:56, 88d0ff8 07:03, c07e6db 13:26 UTC) semuanya galleryItem=0; artifact GitHub Actions Task 97 (12633038016) diunduh & dibedah — DB-nya juga 0; produksi masih build lama (api/gallery balas HTML) → tak mungkin punya foto.
+- Akar masalah (2 lapis): (1) SQLite mode WAL — tulisan terbaru (foto unggahan sore 26 Okt) hanya ada di db/custom.db-wal, sedangkan .gitignore SENGAJA mengabaikan db/*.db-wal sehingga backup git tidak pernah memuat foto; (2) proses auto-sync (background loop) mati setelah sesi selesai ~14:03 Bangkok, sebelum foto diunggah; sandbox dibangun ulang 03:39 → DB kembali ke kondisi backup (pra-foto), WAL lenyap.
+- Pemulihan data: upaya terakhir bedah biner (grep jejak base64 /9j/ & iVBOR di semua salinan DB) — jumlah identik (39/8), TIDAK ada blob foto tersisa → foto dinyatakan tidak dapat dipulihkan dari sumber manapun.
+- Perbaikan permanen: (a) scripts/auto-push-github.sh kini menjalankan checkpoint_db() — PRAGMA wal_checkpoint(TRUNCATE) via Prisma — sebelum tiap commit; (b) .gitignore: db/*.db-wal TIDAK lagi diabaikan (lapis kedua bila checkpoint gagal; -shm tetap diabaikan); (c) loop sync di-restart (PID baru 2416); (d) cron platform job 476324 "Cadangan GitHub Golden Bee (30 menit)" fixed_rate 1800s sebagai pengaman lintas-sesi.
+- Backup darurat: checkpoint + commit 5a2f43e "Task 98: pengaman data..." terdorong ke GitHub (88d0ff8..5a2f43e) — kondisi DB saat ini (produk/testimoni/media lama) kini aman.
+- Verifikasi browser: beranda render normal (judul OK, #beranda/#produk/#testimoni/#kontak OK; id tentang = #tentang), menu tampil 5 item (Galeri memang otomatis muncul lagi begitu ada foto aktif — perilaku self-healing Task 96), /api/gallery → 0 item, section #galeri tak dirender saat kosong (by design), panel admin terbuka via #admin dengan gerbang sandi utuh → siap diisi ulang.
+- Run Actions 40446846822 SUCCESS (commit 5a2f43e) → artifact BARU goldenbee-cpanel id=12708048950 (kedaluwarsa 2026-11-26).
+
+Stage Summary:
+- Foto galeri 26 Okt TIDAK TERSELAMATKAN (tak ada salinan di git/artifact/produksi/blob). Pemilik perlu mengunggah ulang foto via Panel Admin → Galeri; menu "Galeri", slideshow, marquee satu barisan & lightbox akan otomatis aktif kembali.
+- Akar masalah diperbaiki permanen: checkpoint WAL tiap sync + WAL di-track git + cron backup 30 menit — kasus serupa tidak akan terulang.
+- Paket deploy terbaru: artifact 12708048950 (Task 90-b s.d. 98).
