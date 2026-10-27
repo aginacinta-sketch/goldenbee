@@ -226,3 +226,19 @@ Stage Summary:
 - Foto galeri 26 Okt TIDAK TERSELAMATKAN (tak ada salinan di git/artifact/produksi/blob). Pemilik perlu mengunggah ulang foto via Panel Admin → Galeri; menu "Galeri", slideshow, marquee satu barisan & lightbox akan otomatis aktif kembali.
 - Akar masalah diperbaiki permanen: checkpoint WAL tiap sync + WAL di-track git + cron backup 30 menit — kasus serupa tidak akan terulang.
 - Paket deploy terbaru: artifact 12708048950 (Task 90-b s.d. 98).
+
+---
+Task ID: 99
+Agent: Z.ai Code (sesi utama)
+Task: "mengapa data foto yang diupload ke galeri tidak tersimpan di database, dan saat website dibuka data tampilan kembali kosong" — menjawab & membuktikan alur simpan galeri.
+
+Work Log:
+- Cek DB: galleryItem 0, media 23 (terbaru 30 Sep), dev.log TIDAK ada POST /api/admin sejak reset → unggahan ulang belum pernah sampai ke server; produksi masih build lama (api/gallery balas HTML).
+- Uji E2E alur simpan (login admin123 dari DEFAULT_SETTINGS — setting adminPassword kosong di DB): login → token ✓; POST /api/admin/media (multipart uji.png) → tersimpan ✓; POST /api/admin/gallery {image,caption,active} → tersimpan ✓; GET /api/gallery publik mengembalikan item ✓; menu self-healing otomatis menambah "Galeri" ✓; browser: section #galeri ter-render (2 img: slideshow+marquee), menu 6 label ✓.
+- Bersih-bersih data uji: DELETE /api/admin/gallery/[id] + /api/admin/media/[id] → galleryItem 0, media kembali 23; API publik [].
+- Workflow cpanel-build.yml: trigger push paths src/**, public/** (+ dispatch) → commit DB dari auto-sync TIDAK memicu build artifact (opsi "unggah di sandbox lalu deploy" butuh build manual).
+- Kesimpulan akar keluhan: (1) dua lingkungan terpisah (sandbox vs produksi, masing-masing DB sendiri); (2) produksi masih build pra-galeri; (3) insiden kehilangan kemarin sudah diperbaiki Task 98. Foto yang diunggah MEMANG tersimpan — terbukti E2E.
+
+Stage Summary:
+- Alur simpan galeri sehat 100%; tidak ada perubahan kode (tidak perlu build baru).
+- Rekomendasi user: deploy artifact 12708048950 dengan skrip AMAN (cadangkan db produksi → deploy → kembalikan db), lalu unggah foto via admin produksi agar persisten; sarankan ganti sandi admin123 di tab Akun.
