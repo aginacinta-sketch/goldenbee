@@ -258,3 +258,17 @@ Work Log:
 Stage Summary:
 - Database kini memuat: 5 foto galeri, 8 produk, 3 testimoni, 6 menu (dgn Galeri), 36 setting, 28 media (base64) — integritas ok dan terbackup GitHub.
 - Cara unggah ke cPanel: satu skrip Terminal (deploy build + tarik DB terkini dari GitHub), tidak perlu unduh-unggah manual lewat File Manager.
+
+---
+Task ID: 101
+Agent: Z.ai Code (sesi utama)
+Task: "buatkan Paket Deploy Terbaru ke git hub" — picu build manual & verifikasi paket.
+
+Work Log:
+- Baca .github/workflows/cpanel-build.yml: trigger workflow_dispatch tersedia; paket membawa db/custom.db dari repo HEAD + membuang wal/shm.
+- Verifikasi pra-build: galleryItem 5 (aman), HEAD 009029c, hanya db/custom.db-wal kosong berubah (churn normal).
+- Picu build via POST dispatches → HTTP 204. Run 40451023322 (event workflow_dispatch, sha 009029c) SUCCESS 04:40:26→04:41:13 UTC; artifact goldenbee-cpanel id=12710232626 (118,2 MB, kedaluwarsa 2026-11-26).
+- Verifikasi isi artifact (unduh, ekstrak db/custom.db): galleryItem 5 (Dokumen 1–5 aktif), produk 8, media 28 — paket = kode terbaru + data terkini.
+
+Stage Summary:
+- Paket deploy terbaru: ART=12710232626 — satu paket membawa fitur galeri lengkap + 5 foto. Deploy cPanel cukup ekstrak penuh (db ikut) dengan cadangan DB lama dulu.
