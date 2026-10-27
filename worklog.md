@@ -289,3 +289,16 @@ Stage Summary:
 - Diagnosis: server cPanel hidup, router/auth OK, build lama; DB produksi tidak terbaca oleh Prisma (semua API data 500). Sumber DB di GitHub sehat.
 - Solusi diserahkan ke pemilik: jalankan scripts/perbaiki-katalog-cpanel.sh (di-push ke GitHub) via cPanel Terminal; bila output masih gagal, kirim output layar untuk analisis lanjut.
 - Setelah pulih: build produksi masih lama (gallery 404) — sarankan deploy artifact 12710232626 agar fitur galeri aktif.
+
+---
+Task ID: 103
+Agent: Z.ai Code (sesi utama)
+Task: Lanjutan katalog cPanel 500 — pemilik menjalankan skrip pulihkan DB; API masih 500 → pindah fokus ke lapisan aplikasi.
+
+Work Log:
+- Output skrip pemilik (01:22): disk 40% (243G lega); db/ berisi custom.db 28.610.560 byte header "SQLite format 3" VALID (persis ukuran snapshot Task-100) + chat.db 4KB + chat.db-wal 2MB; DB GitHub 53.174.272 byte terpasang md5 cocok ✅; restart.txt dikirim; 4 API tetap 500.
+- Kesimpulan: file DB TIDAK pernah rusak → 500 berasal dari lapisan aplikasi: (a) proses lama tidak benar-benar restart (quirk Passenger host ini, Task 89-b), (b) engine Prisma gagal di host, atau (c) DATABASE_URL salah. Butuh pesan error asli dari query langsung.
+- Skrip lanjutan (versi pendek, anti-truncation paste) diberikan ke pemilik: node nodevenv + PrismaClient dengan URL eksplisit → tampilkan ERROR ASLI; tail ~/logs; pkill -f "nodevenv/goldenbee-app" (Passenger respawn otomatis); uji ulang /api/settings|products.
+
+Stage Summary:
+- DB produksi kini salinan sehat dari GitHub; masalah 500 berpindah ke lapisan app (restart/engine/env). Menunggu output skrip pendek dari pemilik untuk menentukan perbaikan final.
