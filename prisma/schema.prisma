@@ -3,10 +3,14 @@ generator client {
   // binaryTargets: engine query ikut di-pack untuk berbagai varian Linux
   // hosting. "native" = engine utk mesin build; "debian-openssl-3.0.x" &
   // "debian-openssl-1.1.x" = cPanel modern (AlmaLinux 9/CloudLinux 9,
-  // OpenSSL 3) & cPanel lama (AlmaLinux 8/CloudLinux 8, OpenSSL 1.1).
+  // OpenSSL 3) & cPanel lama (AlmaLinux 8/CloudLinux 8, OpenSSL 1.1);
+  // "debian-openssl-1.0.x" = hosting cPanel sangat lama (CentOS 7 /
+  // CloudLinux 7, OpenSSL 1.0) — TERBUKTI dibutuhkan server produksi
+  // goldenbee.web-id.id (Prisma: "actual deployment required
+  // debian-openssl-1.0.x", Task 106).
   // Tanpa ini, deploy cPanel bisa gagal dengan error "Query engine binary
   // for current platform ... could not be found".
-  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x", "debian-openssl-1.0.x"]
 }
 
 datasource db {
