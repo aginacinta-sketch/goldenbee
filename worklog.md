@@ -332,3 +332,19 @@ Work Log:
 
 Stage Summary:
 - Akar pasti: engine Prisma hilang dari node_modules server cPanel. Perbaikan final = pasang ulang paket resmi 12710232626 dengan penjagaan db. Menunggu eksekusi pemilik + hasil uji API (target: 4x HTTP 200).
+
+---
+Task ID: 103
+Agent: Z.ai Code (sesi utama)
+Task: "bisakah dibuatkan file zip saja agar langsung saya upload atau push ke github" — kirim paket perbaikan sebagai Release GitHub.
+
+Work Log:
+- Checkpoint WAL sandbox DB (md5 d2558be32c8d1673dda77a8ce77f69c9, 53.174.272 byte).
+- Rakit ZIP perbaikan: ekstrak goldenbee-cpanel.zip dari artifact 12710232626 → timpa db/custom.db dengan DB terbaru (md5 terverifikasi) → tambah app.js launcher 2 baris (process.chdir + require server.js, pengaman quirk Passenger Task 89-b) → zip ulang = goldenbee-cpanel-fix.zip (136 MB, 3.598 berkas; verifikasi isi: 2 engine libquery_engine, server.js, app.js, db/custom.db 53MB).
+- Buat GitHub Release tag cpanel-paket-20261028 (id 425846662) + unggah aset goldenbee-cpanel-fix.zip (id 682512715, 142.336.524 byte, state uploaded). Verifikasi unduhan: 302 → CDN → HTTP 200 octet-stream.
+- Bersihkan /tmp (zipbuild, cek_art, zip ±380MB).
+- Instruksi ke pemilik: unduh dari halaman Releases (browser, login aginacinta-sketch) → File Manager upload ke home → Extract ke dalam goldenbee-app (replace) → Setup Node.js App → Restart → cek situs. Alternatif Terminal: skrip BEE3 sebelumnya tetap valid.
+- Commit b689f31.. push sukses (repo skrip versi placeholder token; token hanya di chat).
+
+Stage Summary:
+- Paket perbaikan tersedia publik-untuk-pemilik di https://github.com/aginacinta-sketch/goldenbee/releases/tag/cpanel-paket-20261028 — satu ZIP memuat build terbaru + engine Prisma + DB terkini + launcher. Menunggu pemilik mengekstrak & restart, lalu verifikasi 4 API dari sini.
