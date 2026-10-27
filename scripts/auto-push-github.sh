@@ -1,11 +1,29 @@
 #!/usr/bin/env bash
 # Auto-sync GitHub: tiap 10 menit — commit perubahan (bila ada) lalu dorong
-# ke origin/main. Dinyalakan oleh sambungkan-github.sh --auto.
+# ke origin/main. Dinyalakan oleh sambungkan-github.sh --auto dan otomatis
+# dijalankan platform saat sandbox boot.
 # Log: auto-push-github.log | PID: /tmp/auto-push-github.pid
+#
+# PERBAIKAN 27 Okt (insiden foto galeri hilang):
+# Sebelum commit, isi custom.db-wal digabung (checkpoint) ke custom.db.
+# Tanpa ini, tulisan terbaru (mis. foto galeri yang diunggah admin) hanya
+# ada di berkas -wal yang tidak dibackup git — begitu sandbox dibangun
+# ulang, data kembali ke kondisi lama dan tulisan terbaru lenyap.
 set -u
 cd "$(cd "$(dirname "$0")/.." && pwd)" || exit 1
 
 intensitas_detik="${GITHUB_SYNC_DETIK:-600}"
+
+checkpoint_db() {
+  # Gabungkan WAL ke custom.db agar cadangan selalu memuat data terbaru.
+  node -e "
+const {PrismaClient} = require('@prisma/client');
+const db = new PrismaClient();
+db.\$queryRawUnsafe('PRAGMA wal_checkpoint(TRUNCATE);')
+  .then(() => db.\$disconnect())
+  .catch(() => db.\$disconnect().catch(() => {}));
+" >/dev/null 2>&1 || true
+}
 
 while true; do
   sleep "$intensitas_detik"
@@ -13,6 +31,7 @@ while true; do
     echo "[$(date '+%d/%m %H:%M')] ✗ remote origin hilang — berhenti."
     exit 1
   fi
+  checkpoint_db
   git add -A >/dev/null 2>&1
   if ! git diff --cached --quiet >/dev/null 2>&1; then
     git -c user.name="Auto Sync" -c user.email="auto-sync@local" \

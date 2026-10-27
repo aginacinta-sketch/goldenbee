@@ -22,9 +22,15 @@ build/
 # Database SQLite — db/custom.db SENGAJA DI-TRACK sejak insiden 9 Okt:
 # workspace sandbox pernah dibuat ulang platform dan SEMUA berkas di luar
 # git hilang (data katalog ikut lenyap). Dengan men-track database, auto-
-# commit platform menjadi cadangan data. Berkas sampingan WAL tetap diabaikan.
+# commit platform menjadi cadangan data.
+#
+# custom.db-wal juga DI-TRACK sejak insiden 27 Okt: mode WAL menuliskan
+# data terbaru ke berkas -wal; bila checkpoint belum berjalan, foto/data
+# yang baru diunggah HANYA ada di -wal. Dengan men-track -wal, backup git
+# tetap memuat data terbaru walau checkpoint gagal (SQLite otomatis
+# memutar ulang WAL saat dibuka, dan membuangnya dengan aman bila tak cocok).
+# -shm hanyalah indeks sementara yang dibangun ulang otomatis — tetap diabaikan.
 db/*.db-shm
-db/*.db-wal
 db/*.db.backup-*
 db/*.kosong-*
 
