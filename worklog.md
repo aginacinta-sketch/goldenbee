@@ -302,3 +302,18 @@ Work Log:
 
 Stage Summary:
 - DB produksi kini salinan sehat dari GitHub; masalah 500 berpindah ke lapisan app (restart/engine/env). Menunggu output skrip pendek dari pemilik untuk menentukan perbaikan final.
+
+---
+Task ID: 103
+Agent: Z.ai Code (sesi utama)
+Task: Lanjutan 102 — pemilik menjalankan skrip perbaikan: DB sehat TERPASANG (md5 cocok) tapi API tetap 500. Cari error asli.
+
+Work Log:
+- Hasil skrip pemilik (cPanel 01:22): disk lega (243G bebas); db/ berisi custom.db lama 28.610.560 byte (header valid) + chat.db 4KB + chat.db-wal 2MB + arsip-chat-lama/; DB baru 53.174.272 byte terpasang, MD5 cocok; restart.txt terkirim; 4 API tetap 500.
+- KESIMPULAN: berkas DB bukan akar masalah — dugaan baru: klien Prisma/engine rusak di node_modules server (mis. kena Run NPM Install) atau struktur aplikasi bermasalah (du hanya mencetak 1 baris → .next mungkin tidak ada; tapi homepage 200 → proses masih render).
+- cron 476324 02:26: tidak ada perubahan, push sukses.
+- Buat scripts/diagnosa-lanjutan-cpanel.sh (baca-saja, tanpa token): struktur aplikasi, engine Prisma (.prisma/client + @prisma/engines), berkas samping db (bukti pembukaan DB), .env, UJI QUERY LANGSUNG via nodevemv node ≥18 dengan pesan error asli (6 baris pertama), log stderr/stdout terakhir.
+- bash -n OK; commit & push 17fe1d1.. (patuh push protection — skrip tanpa token).
+
+Stage Summary:
+- DB produksi kini SEHAT & terpasang; blokir tersisa ada di lapisan aplikasi (engine Prisma / node_modules / struktur). Menunggu output diagnosa lanjutan dari pemilik untuk menentukan perbaikan final.
