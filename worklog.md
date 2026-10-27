@@ -317,3 +317,18 @@ Work Log:
 
 Stage Summary:
 - DB produksi kini SEHAT & terpasang; blokir tersisa ada di lapisan aplikasi (engine Prisma / node_modules / struktur). Menunggu output diagnosa lanjutan dari pemilik untuk menentukan perbaikan final.
+
+---
+Task ID: 103
+Agent: Z.ai Code (sesi utama)
+Task: AKAR MASALAH KETEMU — engine Prisma hilang di cPanel; siapkan pemasangan ulang paket resmi.
+
+Work Log:
+- Output diagnosa pemilik: uji query langsung gagal dengan "The following locations have been searched" (.prisma/client, @prisma/client, path GitHub runner, /tmp/prisma-engines) = QUERY ENGINE TIDAK DITEMUKAN → DB sehat tidak bisa dibaca oleh aplikasi. Node nodevenv v22.23.4 ada. pkill tidak menemukan proses nodevenv (model proses Passenger tak standar). Log ~/logs hanya gzip akses (tidak berguna).
+- Unduh artifact 12710232626 dari sandbox & bedah: node_modules/.prisma/client LENGKAP dengan 2 engine (libquery_engine-debian-openssl-3.0.x.so.node 17,5MB + openssl-1.1.x 21,8MB), server.js, .next/BUILD_ID, db/ (snapshot lama). → node_modules di SERVER yang rusak (dugaan: kena Run NPM Install / ekstraksi lama tidak lengkap).
+- Solusi: scripts/pasang-ulang-paket-cpanel.sh (Task 103) — unduh artifact 12710232626, cadangkan aplikasi lama penuh (goldenbee-app-lama-*), pasang paket baru, KEMBALIKAN db/ dari aplikasi lama (custom.db sehat 53MB hari ini + chat.db/wal/arsip + custom.db.rusak-*), salin app.js lama bila ada (launcher Passenger), verifikasi engine, restart.txt, uji 4 API. Repo versi placeholder token (push protection); versi chat token utuh.
+- Bonus: paket baru = build terbaru → fitur galeri & slideshow langsung aktif di produksi setelah langkah ini.
+- bash -n OK; commit 9c2a1d9.. push sukses.
+
+Stage Summary:
+- Akar pasti: engine Prisma hilang dari node_modules server cPanel. Perbaikan final = pasang ulang paket resmi 12710232626 dengan penjagaan db. Menunggu eksekusi pemilik + hasil uji API (target: 4x HTTP 200).
