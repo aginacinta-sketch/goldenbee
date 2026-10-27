@@ -365,3 +365,22 @@ Work Log:
 Stage Summary:
 - Jalur perbaikan baru SATU BARIS di cPanel Terminal: curl -sL -o /tmp/perbaiki.sh https://raw.githubusercontent.com/aginacinta-sketch/goldenbee/main/scripts/perbaiki-server-sekarang.sh && bash /tmp/perbaiki.sh — tanpa token, tanpa upload 136 MB via browser.
 - Paket terbukti jalan (5x HTTP 200 di sandbox). Menunggu pemilik mengeksekusi perintah; verifikasi akhir = 6x HTTP 200 dari skrip + cek silang dari sini.
+
+---
+Task ID: 105
+Agent: Z.ai Code (sesi utama)
+Task: Pemilik laporkan "Gagal memuat katalog" (screenshot) — buat jalur perbaikan kedua yang ringan (tanpa Terminal).
+
+Work Log:
+- Verifikasi produksi 19:19: / 200; api/settings 500, api/gallery 500 {"Gagal memuat galeri"}, api/testimonials 500, products/menus timeout/500. → Perbaikan belum dipasang.
+- Analisis: build .next di server SUDAH fitur galeri (respon JSON rute galeri) → hanya Prisma engine yang hilang; DB server sehat (tidak boleh ditimpa paket besar demi data terbaru).
+- Cari kredensial akses langsung (ftp/ssh) di repo+deploy+worklog: TIDAK ADA → wajib eksekusi oleh pemilik.
+- Riset isi ZIP besar: engineType "library" (index.js .prisma → require @prisma/client/runtime/library.js + libquery_engine .so.node; chain: @prisma/client/index.js → scripts/default-index.js → .prisma/client/default.js → index.js). Traced copy .next/node_modules/@prisma/client-2c3a283f134fdcb6 ikut dipulihkan.
+- Rakit goldenbee-minimal-fix.zip (20.410.283 B, md5 754eb6a9015a3cc3e9e2de6e17ea2622, 106 file): node_modules/.prisma/client penuh (2 engine + client), node_modules/@prisma/client slim (tanpa *.map/wasm-base64/generator-build), .next traced copy slim, .env (DATABASE_URL absolut), app.js, PERBAIKI-DISINI.txt. DB sengaja TIDAK disertakan.
+- Uji sandbox bukti 2 arah: (a) app utuh → hapus .prisma+@prisma+traced → 5 API 500 (mimpi buruk server = reproduksi); (b) pasang minimal ZIP → .env sandbox dikembalikan → 5 API 200 ("Ready in 81ms").
+- Upload sebagai aset kedua release cpanel-paket-20261028 (asset id 682626383); verifikasi unduhan publik 200, md5 identik, unzip -t OK.
+- Bersihkan /tmp/beetest2, /tmp/minifix/stage tetap ada (zip di /tmp/minifix).
+
+Stage Summary:
+- Dua jalur perbaikan siap: (A) Terminal 1 baris — paket lengkap 136 MB otomatis di server; (B) File Manager — ZIP ringkas 20,4 MB (tanpa DB, tanpa build; hanya Prisma + .env + app.js) lalu Restart.
+- Keduanya terbukti di sandbox. Menunggu pemilik mengeksekusi salah satu; verifikasi akhir = 5-6 API HTTP 200.
